@@ -1,0 +1,24 @@
+{
+  "name": "@zeno/agent",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"no tests yet\"",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hedera-agent-kit": "^3.8.0",
+    "@langchain/core": "^1.1.31",
+    "@langchain/openai": "^1.2.12",
+    "@langchain/langgraph": "^1.2.1",
+    "langchain": "^1.2.30",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -160,7 +160,7 @@
 
 ```
 5a. Configure hardhat.config.ts:
-    - Network: hedera_testnet (https://testnet.hashio.io/api)
+    - Network: hedera_testnet (Validation Cloud JSON-RPC (see HEDERA_JSON_RPC_URL in .env))
     - Operator private key in hex format
 
 5b. Write packages/contracts/contracts/ComplianceChecker.sol:

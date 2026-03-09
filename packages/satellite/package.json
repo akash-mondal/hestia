@@ -1,0 +1,11 @@
+{
+  "name": "@zeno/satellite",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo \"Python package — no npm build\"",
+    "test": "echo \"no tests yet\"",
+    "lint": "echo \"no lint\"",
+    "dev": "uvicorn api:app --reload --port 8000"
+  }
+}

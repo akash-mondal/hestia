@@ -1,0 +1,24 @@
+{
+  "name": "@zeno/blockchain",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"no tests yet\"",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.80.0",
+    "@aws-sdk/client-kms": "^3.1004.0",
+    "asn1js": "^3.0.7",
+    "elliptic": "^6.6.1",
+    "js-sha3": "^0.9.3"
+  },
+  "devDependencies": {
+    "@types/elliptic": "^6.4.18",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
