@@ -158,7 +158,9 @@ flowchart TD
 | `trust-chain.ts` | Evidence package builder for NGT/Section 65B compliance |
 | `mirror.ts` | Mirror Node REST API typed wrappers with pagination |
 | `kms-signer.ts` | AWS KMS signing pipeline (DER parsing, key conversion, custom signer) |
-| `validator.ts` | Sensor reading ingestion validation (schema, ranges, chemistry constraints) |
+| `validator.ts` | Three-tier ingestion validation: analyzer limits, chemistry, flatline/rate-of-change detection, CPCB alert codes |
+
+> **Validator documentation**: See [`docs/validator.md`](docs/validator.md) for the complete validation rule reference — analyzer range limits, chemistry constraints, CPCB alert level mapping, quality codes, and flatline/rate-of-change detection logic.
 
 ---
 

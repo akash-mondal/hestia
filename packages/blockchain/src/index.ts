@@ -74,5 +74,21 @@ export {
 // Trust chain
 export { buildTrustChainEvidence, printTrustChain } from './trust-chain';
 
-// Validator
-export { validateSensorReading } from './validator';
+// Validator (Tier 1 + Tier 2)
+export {
+  validateSensorReading,
+  validateBatch,
+  validateSensorReadingLegacy,
+  printValidationReport,
+  ANALYZER_LIMITS,
+  RATE_OF_CHANGE_LIMITS,
+  FLATLINE_VARIATION_THRESHOLD,
+} from './validator';
+export type {
+  ValidationIssue,
+  ReadingValidationResult,
+  BatchValidationResult,
+  ValidationResult,
+  ValidationSeverity,
+  CPCBAlertLevel,
+} from './validator';
