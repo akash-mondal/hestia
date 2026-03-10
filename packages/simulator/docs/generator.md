@@ -70,7 +70,7 @@ Based on real Jajmau CETP performance data (2023-2025):
 - CETP outlet (compliant): BOD 15-28 / COD 80-230 / Cr 0.3-1.8 mg/L
 - CETP outlet (overloaded): BOD 35-120 / COD 280-500 / Cr 2.5-8.0 mg/L
 - Problem parameters: COD, Total Chromium, BOD, TSS
-- BOD/COD ratio: 0.25-0.45 (low biodegradability from chrome tanning)
+- BOD/COD ratio: 0.08-0.18 (very low — recalcitrant chrome tanning waste; Jajmau data: BOD 17 / COD 240 = 0.07)
 
 ### Distillery (ZLD Mandated)
 
@@ -83,14 +83,14 @@ Based on real Jajmau CETP performance data (2023-2025):
 
 - API wash waters cause periodic COD spikes
 - Low chromium (not a pharma issue)
-- BOD/COD ratio: 0.15-0.35 (low biodegradability from API residues)
+- BOD/COD ratio: 0.15-0.25 (low biodegradability from API residues and solvents)
 - Problem parameters: COD, pH, Ammoniacal Nitrogen
 
 ### Pulp & Paper
 
 - Highest water consumption (500-5,000 KLD per facility)
 - Black liquor leakage causes alkaline pH spikes (9.5-11.0)
-- BOD/COD ratio: 0.3-0.5 (moderate biodegradability)
+- BOD/COD ratio: 0.15-0.22 (low — lignin and chloro-organics resist biodegradation)
 - Problem parameters: COD, BOD, TSS, pH
 
 ### Dye & Dye Intermediates
@@ -103,7 +103,7 @@ Based on real Jajmau CETP performance data (2023-2025):
 ### Sugar
 
 - Seasonal operation, molasses-based BOD
-- Highly biodegradable effluent → high BOD/COD ratio (0.4-0.6)
+- Relatively biodegradable effluent → BOD/COD ratio (0.25-0.40)
 - Problem parameters: BOD, COD
 
 ---
@@ -115,7 +115,7 @@ Parameters are NOT generated independently. The generator enforces real-world co
 | Relationship | Implementation |
 |-------------|----------------|
 | COD > BOD (always) | BOD derived from COD × industry-specific ratio. Hard-clamped. |
-| BOD/COD ratio | Industry-specific: 0.1-0.25 (dye) to 0.4-0.6 (sugar) |
+| BOD/COD ratio | Industry-specific: 0.08-0.18 (tannery) to 0.25-0.40 (sugar) |
 | HexCr ≤ TotalCr (always) | HexCr generated after TotalCr, clamped if exceeding |
 | TSS correlates with COD | TSS baseline multiplied by COD deviation factor |
 | DO inversely correlates with BOD | High BOD → low dissolved oxygen (organic load depletes O₂) |
