@@ -15,6 +15,9 @@ export interface FacilityConfig {
 }
 
 export const FACILITIES: FacilityConfig[] = [
+  // --- KANPUR JAJMAU TANNERY CLUSTER (5 facilities) ---
+  // Jajmau has ~400 tanneries, most connected to the 9 MLD CETP (operating >12 MLD)
+  // NGT ordered ₹2.37 crore penalty on 211 tanneries in 2024
   {
     id: 'KNP-TAN-001',
     name: 'Superhouse Leather Ltd, Jajmau',
@@ -26,7 +29,7 @@ export const FACILITIES: FacilityConfig[] = [
     ctoNumber: 'UPPCB/CTO/2024/TAN/001',
     ctoDischargeMode: 'discharge',
     ctoCustomLimits: null,
-    violationProbability: 0.5, // 50% COD violations (mean 350 vs limit 250)
+    violationProbability: 0.5, // 50% — chronic COD/Cr violator
   },
   {
     id: 'KNP-TAN-002',
@@ -64,9 +67,9 @@ export const FACILITIES: FacilityConfig[] = [
     lon: 80.3850,
     ctoNumber: 'UPPCB/CTO/2024/TAN/004',
     ctoDischargeMode: 'discharge',
-    // Stricter CTO: near drinking water intake
+    // Stricter CTO: near Ganga drinking water intake at Gau Ghat
     ctoCustomLimits: { BOD_mgL: 20, COD_mgL: 150, totalChromium_mgL: 1.0 },
-    violationProbability: 0.6,
+    violationProbability: 0.6, // Stricter limits → more violations
   },
   {
     id: 'KNP-TAN-005',
@@ -81,6 +84,10 @@ export const FACILITIES: FacilityConfig[] = [
     ctoCustomLimits: null,
     violationProbability: 0.35,
   },
+
+  // --- ZLD MANDATED DISTILLERY ---
+  // All distilleries mandated ZLD by CPCB since 2014
+  // Any liquid discharge = violation regardless of parameter quality
   {
     id: 'KNP-DST-001',
     name: 'UP Distillers Ltd, Unnao',
@@ -90,10 +97,60 @@ export const FACILITIES: FacilityConfig[] = [
     lat: 26.5300,
     lon: 80.4880,
     ctoNumber: 'UPPCB/CTO/2024/DST/001',
-    ctoDischargeMode: 'ZLD', // Zero Liquid Discharge mandated
+    ctoDischargeMode: 'ZLD',
     ctoCustomLimits: null,
-    violationProbability: 0.2, // occasional discharge = violation
+    violationProbability: 0.2, // 20% chance of discharge (ZLD breach)
   },
+
+  // --- PHARMACEUTICAL ETP ---
+  // 774 pharma units nationally, API wash waters cause periodic COD spikes
+  {
+    id: 'KNP-PHA-001',
+    name: 'Omega Pharma Industries, Kanpur',
+    category: IndustryCategory.Pharma,
+    state: 'Uttar Pradesh',
+    district: 'Kanpur Nagar',
+    lat: 26.4700,
+    lon: 80.3500,
+    ctoNumber: 'UPPCB/CTO/2025/PHA/001',
+    ctoDischargeMode: 'discharge',
+    ctoCustomLimits: null,
+    violationProbability: 0.25,
+  },
+
+  // --- PULP & PAPER MILL ---
+  // High water consumption (500-5000 KLD), black liquor is primary pollutant
+  {
+    id: 'UNN-PPR-001',
+    name: 'Ganges Paper Mills, Unnao',
+    category: IndustryCategory.PulpAndPaper,
+    state: 'Uttar Pradesh',
+    district: 'Unnao',
+    lat: 26.5500,
+    lon: 80.5100,
+    ctoNumber: 'UPPCB/CTO/2024/PPR/001',
+    ctoDischargeMode: 'discharge',
+    ctoCustomLimits: null,
+    violationProbability: 0.3,
+  },
+
+  // --- DYE & DYE INTERMEDIATES ---
+  // Chrome dyes cause Cr discharge, recalcitrant organics resist biodegradation
+  {
+    id: 'KNP-DYE-001',
+    name: 'Ganga Dyes & Chemicals, Kanpur',
+    category: IndustryCategory.DyeAndDyeIntermediates,
+    state: 'Uttar Pradesh',
+    district: 'Kanpur Nagar',
+    lat: 26.4600,
+    lon: 80.3700,
+    ctoNumber: 'UPPCB/CTO/2025/DYE/001',
+    ctoDischargeMode: 'discharge',
+    ctoCustomLimits: null,
+    violationProbability: 0.35,
+  },
+
+  // --- MOSTLY COMPLIANT TANNERY (for contrast in demo) ---
   {
     id: 'KNP-TAN-006',
     name: 'Bharat Leather Works, Jajmau',
@@ -105,6 +162,6 @@ export const FACILITIES: FacilityConfig[] = [
     ctoNumber: 'UPPCB/CTO/2024/TAN/006',
     ctoDischargeMode: 'discharge',
     ctoCustomLimits: null,
-    violationProbability: 0.15, // mostly compliant
+    violationProbability: 0.1, // Well-maintained ETP — mostly compliant
   },
 ];

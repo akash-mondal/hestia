@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "tsx src/index.ts",
-    "test": "echo \"no tests yet\"",
+    "test": "tsx scripts/test-generator.ts",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
