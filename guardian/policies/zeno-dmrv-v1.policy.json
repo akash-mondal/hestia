@@ -1,0 +1,1508 @@
+{
+  "config": {
+    "id": "70376ba2-99f3-4017-b4f1-3c4696d10792",
+    "blockType": "interfaceContainerBlock",
+    "defaultActive": true,
+    "permissions": [
+      "ANY_ROLE"
+    ],
+    "onErrorAction": "no-action",
+    "uiMetaData": {
+      "type": "blank"
+    },
+    "tag": "",
+    "children": [
+      {
+        "id": "73cc5a08-a263-4f04-af8c-e268ad8e4639",
+        "blockType": "policyRolesBlock",
+        "defaultActive": true,
+        "permissions": [
+          "NO_ROLE"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "title": "Registration",
+          "description": "Choose your role in the Zeno dMRV system"
+        },
+        "tag": "choose_role",
+        "children": [],
+        "events": [],
+        "artifacts": [],
+        "roles": [
+          "Facility",
+          "SPCB",
+          "VVB",
+          "IoT"
+        ]
+      },
+      {
+        "id": "91240501-e326-41d4-b53c-160d10c7fb2a",
+        "blockType": "interfaceContainerBlock",
+        "defaultActive": true,
+        "permissions": [
+          "Facility"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "type": "blank"
+        },
+        "tag": "facility_workflow",
+        "children": [
+          {
+            "id": "add3fd48-fb44-48ae-885f-e4455a34a660",
+            "blockType": "interfaceStepBlock",
+            "defaultActive": true,
+            "permissions": [
+              "Facility"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {
+              "type": "blank"
+            },
+            "tag": "facility_steps",
+            "children": [
+              {
+                "id": "6a485f17-c939-4f47-8791-e0f944dd4aca",
+                "blockType": "requestVcDocumentBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "page",
+                  "title": "Facility Registration"
+                },
+                "tag": "facility_registration_form",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "schema": "#3037a243-dec7-438a-83fa-1d9174855e45",
+                "idType": "OWNER",
+                "presetFields": []
+              },
+              {
+                "id": "7621fd54-b212-42fd-b11b-cbb273e1132b",
+                "blockType": "sendToGuardianBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "save_registration_hedera",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "dataSource": "hedera",
+                "documentType": "vc",
+                "entityType": "registrant",
+                "topic": "Project",
+                "topicOwner": "user",
+                "options": [],
+                "dataType": ""
+              },
+              {
+                "id": "49be7074-a31b-473b-9d1b-5351c0ffdc5a",
+                "blockType": "sendToGuardianBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "save_registration_db",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "dataSource": "database",
+                "documentType": "vc",
+                "entityType": "registrant",
+                "options": [
+                  {
+                    "name": "status",
+                    "value": "Waiting for approval"
+                  }
+                ],
+                "dataType": ""
+              },
+              {
+                "id": "ab12e3f5-2299-4876-8577-2b820d76d181",
+                "blockType": "informationBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "text",
+                  "title": "Registration Submitted",
+                  "description": "Your facility registration has been submitted. The page will refresh automatically once SPCB approves."
+                },
+                "tag": "wait_for_approval",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "stopPropagation": true
+              },
+              {
+                "id": "e0e08507-e3a8-4dda-bc2d-d0a019f36473",
+                "blockType": "sendToGuardianBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "save_registration_status_approved",
+                "children": [],
+                "events": [
+                  {
+                    "target": "registrations_grid",
+                    "source": "save_registration_status_approved",
+                    "input": "RefreshEvent",
+                    "output": "RefreshEvent",
+                    "actor": "",
+                    "disabled": false
+                  }
+                ],
+                "artifacts": [],
+                "dataSource": "database",
+                "documentType": "vc",
+                "entityType": "registrant",
+                "options": [
+                  {
+                    "name": "status",
+                    "value": "Approved"
+                  }
+                ],
+                "dataType": ""
+              },
+              {
+                "id": "ab91f077-c0c9-4a7e-9b54-c902bde43543",
+                "blockType": "reassigningBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "sign_by_cpcb",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "issuer": "policyOwner",
+                "actor": "owner"
+              },
+              {
+                "id": "56d39516-ca5e-4fbe-97d3-f11574e47142",
+                "blockType": "sendToGuardianBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "save_signed_registration_hedera",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "dataSource": "hedera",
+                "documentType": "vc",
+                "entityType": "registrant(Approved)",
+                "topic": "Project",
+                "topicOwner": "owner",
+                "options": []
+              },
+              {
+                "id": "2752cf57-6419-4c52-bf0c-54118bfb8261",
+                "blockType": "sendToGuardianBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "save_signed_registration_db",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "dataSource": "database",
+                "documentType": "vc",
+                "entityType": "registrant(Approved)",
+                "forceNew": true,
+                "options": [
+                  {
+                    "name": "status",
+                    "value": "Approved"
+                  }
+                ],
+                "dataType": ""
+              },
+              {
+                "id": "38ff3668-de97-4cb1-9565-abc2386a2567",
+                "blockType": "interfaceContainerBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "tabs"
+                },
+                "tag": "facility_dashboard",
+                "children": [
+                  {
+                    "id": "0375cdf0-3a71-4e0e-b7a5-af0e5d316224",
+                    "blockType": "interfaceContainerBlock",
+                    "defaultActive": true,
+                    "permissions": [
+                      "Facility"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {
+                      "type": "blank",
+                      "title": "My Compliance"
+                    },
+                    "tag": "my_compliance_page",
+                    "children": [
+                      {
+                        "id": "488b81f7-07b4-4572-80d9-c1693d4fffa2",
+                        "blockType": "interfaceDocumentsSourceBlock",
+                        "defaultActive": true,
+                        "permissions": [
+                          "Facility"
+                        ],
+                        "onErrorAction": "no-action",
+                        "uiMetaData": {
+                          "fields": [
+                            {
+                              "title": "Evaluation ID",
+                              "name": "document.credentialSubject.0.evaluationId",
+                              "type": "text"
+                            },
+                            {
+                              "title": "Facility",
+                              "name": "document.credentialSubject.0.facilityId",
+                              "type": "text"
+                            },
+                            {
+                              "title": "Compliant",
+                              "name": "document.credentialSubject.0.overallCompliant",
+                              "type": "text"
+                            },
+                            {
+                              "title": "Token Action",
+                              "name": "document.credentialSubject.0.tokenAction",
+                              "type": "text"
+                            },
+                            {
+                              "title": "Evaluated At",
+                              "name": "document.credentialSubject.0.evaluatedAt",
+                              "type": "text"
+                            }
+                          ]
+                        },
+                        "tag": "compliance_grid",
+                        "children": [
+                          {
+                            "id": "d80ee6f9-3346-438b-9a3f-76679b450c85",
+                            "blockType": "documentsSourceAddon",
+                            "defaultActive": false,
+                            "permissions": [
+                              "Facility"
+                            ],
+                            "onErrorAction": "no-action",
+                            "uiMetaData": {},
+                            "tag": "compliance_source",
+                            "children": [],
+                            "events": [],
+                            "artifacts": [],
+                            "schema": "#db6734dd-2ccd-4ee3-8f6b-c129503f9215",
+                            "dataType": "vc-documents",
+                            "filters": [
+                              {
+                                "type": "equal",
+                                "field": "owner",
+                                "value": "currentUser"
+                              }
+                            ]
+                          }
+                        ],
+                        "events": [],
+                        "artifacts": []
+                      }
+                    ],
+                    "events": [],
+                    "artifacts": []
+                  },
+                  {
+                    "id": "34a2291f-981b-4c4e-bc05-f75a4ae48ed4",
+                    "blockType": "interfaceContainerBlock",
+                    "defaultActive": true,
+                    "permissions": [
+                      "Facility"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {
+                      "type": "blank",
+                      "title": "My Tokens"
+                    },
+                    "tag": "my_tokens_page",
+                    "children": [
+                      {
+                        "id": "1f50fb3a-25f3-4a59-83bc-3356d9596394",
+                        "blockType": "interfaceDocumentsSourceBlock",
+                        "defaultActive": true,
+                        "permissions": [
+                          "Facility"
+                        ],
+                        "onErrorAction": "no-action",
+                        "uiMetaData": {
+                          "fields": [
+                            {
+                              "title": "Token",
+                              "name": "tokenId",
+                              "type": "text"
+                            },
+                            {
+                              "title": "Date",
+                              "name": "createDate",
+                              "type": "text"
+                            }
+                          ]
+                        },
+                        "tag": "tokens_grid",
+                        "children": [
+                          {
+                            "id": "6bbdb6f2-a2da-4133-8a4c-416b66efe9c8",
+                            "blockType": "documentsSourceAddon",
+                            "defaultActive": false,
+                            "permissions": [
+                              "Facility"
+                            ],
+                            "onErrorAction": "no-action",
+                            "uiMetaData": {},
+                            "tag": "tokens_source",
+                            "children": [],
+                            "events": [],
+                            "artifacts": [],
+                            "dataType": "vc-documents",
+                            "filters": []
+                          }
+                        ],
+                        "events": [],
+                        "artifacts": []
+                      }
+                    ],
+                    "events": [],
+                    "artifacts": []
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              },
+              {
+                "id": "f8a7654b-9473-42fd-b51d-e7e6e473e014",
+                "blockType": "sendToGuardianBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "save_registration_status_rejected",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "dataSource": "database",
+                "documentType": "vc",
+                "entityType": "registrant",
+                "options": [
+                  {
+                    "name": "status",
+                    "value": "Rejected"
+                  }
+                ],
+                "dataType": ""
+              },
+              {
+                "id": "bad8e2d7-c018-4fc1-9254-ec37c0d324ac",
+                "blockType": "informationBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "Facility"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "text",
+                  "title": "Registration Rejected",
+                  "description": "Your facility registration was rejected by SPCB. Please resubmit with corrections."
+                },
+                "tag": "registration_rejected",
+                "children": [],
+                "events": [],
+                "artifacts": []
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          }
+        ],
+        "events": [],
+        "artifacts": []
+      },
+      {
+        "id": "53e14a94-bc25-4271-a4b8-5c6097e79a3b",
+        "blockType": "interfaceContainerBlock",
+        "defaultActive": true,
+        "permissions": [
+          "IoT"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "type": "blank"
+        },
+        "tag": "iot_workflow",
+        "children": [
+          {
+            "id": "611152d5-5b4b-4ac8-a264-896a4bd69589",
+            "blockType": "externalDataBlock",
+            "defaultActive": false,
+            "permissions": [
+              "IoT"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "sensor_data_intake",
+            "children": [],
+            "events": [],
+            "artifacts": [],
+            "entityType": "MRV",
+            "schema": "#241302d0-75ff-47d3-bfa5-46d355e9e9a2"
+          },
+          {
+            "id": "4d5bf463-6107-4d8f-8411-c33419087b77",
+            "blockType": "documentValidatorBlock",
+            "defaultActive": false,
+            "permissions": [
+              "IoT"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "validate_reading",
+            "children": [],
+            "events": [],
+            "artifacts": [],
+            "schema": "#241302d0-75ff-47d3-bfa5-46d355e9e9a2",
+            "documentType": "vc-document",
+            "conditions": []
+          },
+          {
+            "id": "7a2d0fc6-f0a7-49c1-a336-d72a79994ee9",
+            "blockType": "customLogicBlock",
+            "defaultActive": false,
+            "permissions": [
+              "IoT"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "compliance_check",
+            "children": [],
+            "events": [],
+            "artifacts": [],
+            "outputSchema": "#db6734dd-2ccd-4ee3-8f6b-c129503f9215",
+            "expression": "(function() {\n  var cs = Array.isArray(doc.document.credentialSubject)\n    ? doc.document.credentialSubject[0]\n    : doc.document.credentialSubject;\n\n  if (!cs) { done(null); return; }\n\n  var LIMITS = {\n    pH: { min: 5.5, max: 9.0, type: 'range' },\n    BOD_mgL: { max: 30, type: 'max' },\n    COD_mgL: { max: 250, type: 'max' },\n    TSS_mgL: { max: 100, type: 'max' },\n    temperature_C: { max: 40, type: 'max' },\n    totalChromium_mgL: { max: 2.0, type: 'max' },\n    hexChromium_mgL: { max: 0.1, type: 'max' },\n    oilAndGrease_mgL: { max: 10, type: 'max' },\n    ammoniacalN_mgL: { max: 50, type: 'max' }\n  };\n\n  var violationCount = 0;\n  var criticalCount = 0;\n  var pH_compliant = true, pH_value = cs.pH || 0;\n  var BOD_compliant = true, BOD_value = cs.BOD_mgL || 0;\n  var COD_compliant = true, COD_value = cs.COD_mgL || 0;\n  var TSS_compliant = true, TSS_value = cs.TSS_mgL || 0;\n  var temp_compliant = true, temp_value = cs.temperature_C || 0;\n  var chromium_compliant = true, chromium_value = cs.totalChromium_mgL || 0;\n\n  // pH range check\n  if (pH_value < 5.5 || pH_value > 9.0) { pH_compliant = false; violationCount++; }\n  // BOD\n  if (BOD_value > 30) { BOD_compliant = false; violationCount++; if (BOD_value > 45) criticalCount++; }\n  // COD\n  if (COD_value > 250) { COD_compliant = false; violationCount++; if (COD_value > 375) criticalCount++; }\n  // TSS\n  if (TSS_value > 100) { TSS_compliant = false; violationCount++; if (TSS_value > 150) criticalCount++; }\n  // Temperature\n  if (temp_value > 40) { temp_compliant = false; violationCount++; }\n  // Chromium\n  if (chromium_value > 2.0) { chromium_compliant = false; violationCount++; if (chromium_value > 3.0) criticalCount++; }\n\n  var overallCompliant = violationCount === 0;\n  var tokenAction = 'none';\n  if (overallCompliant) {\n    tokenAction = 'mint_ggcc';\n  } else if (criticalCount > 0) {\n    tokenAction = 'mint_violation_nft';\n  } else {\n    tokenAction = 'pending_review';\n  }\n\n  var evaluation = {\n    evaluationId: 'EVAL-' + Date.now(),\n    facilityId: cs.facilityId || '',\n    evaluatedAt: new Date().toISOString(),\n    limitsSource: 'schedule_vi',\n    isZLD: false,\n    pH_compliant: pH_compliant,\n    pH_value: pH_value,\n    BOD_compliant: BOD_compliant,\n    BOD_value: BOD_value,\n    COD_compliant: COD_compliant,\n    COD_value: COD_value,\n    TSS_compliant: TSS_compliant,\n    TSS_value: TSS_value,\n    temp_compliant: temp_compliant,\n    temp_value: temp_value,\n    chromium_compliant: chromium_compliant,\n    chromium_value: chromium_value,\n    overallCompliant: overallCompliant,\n    violationCount: violationCount,\n    criticalViolationCount: criticalCount,\n    tokenAction: tokenAction\n  };\n\n  done(evaluation);\n})();"
+          },
+          {
+            "id": "02c6a95c-2fd2-4b76-99e8-4d3c1aee6efb",
+            "blockType": "sendToGuardianBlock",
+            "defaultActive": false,
+            "permissions": [
+              "IoT"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "save_evaluation_hedera",
+            "children": [],
+            "events": [],
+            "artifacts": [],
+            "dataSource": "hedera",
+            "documentType": "vc",
+            "entityType": "evaluation",
+            "topic": "Project",
+            "topicOwner": "owner",
+            "options": []
+          },
+          {
+            "id": "44e3a5ff-051e-4b98-b379-a8277a119cac",
+            "blockType": "sendToGuardianBlock",
+            "defaultActive": false,
+            "permissions": [
+              "IoT"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "save_evaluation_db",
+            "children": [],
+            "events": [],
+            "artifacts": [],
+            "dataSource": "database",
+            "documentType": "vc",
+            "entityType": "evaluation",
+            "options": [],
+            "dataType": ""
+          },
+          {
+            "id": "faccc8ec-c4ac-4e93-8dd2-a448c118ab87",
+            "blockType": "switchBlock",
+            "defaultActive": false,
+            "permissions": [
+              "IoT"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "compliance_router",
+            "children": [
+              {
+                "id": "33a1cb7b-36df-490b-b4c6-8de5bbbbf0de",
+                "blockType": "interfaceContainerBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "IoT"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "blank"
+                },
+                "tag": "compliant_path",
+                "children": [
+                  {
+                    "id": "e6a45815-001e-4c91-8e95-f7fb2b980392",
+                    "blockType": "sendToGuardianBlock",
+                    "defaultActive": false,
+                    "permissions": [
+                      "IoT"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "save_compliant",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "dataSource": "database",
+                    "documentType": "vc",
+                    "entityType": "evaluation(Compliant)",
+                    "options": [
+                      {
+                        "name": "status",
+                        "value": "Compliant"
+                      }
+                    ],
+                    "dataType": ""
+                  },
+                  {
+                    "id": "d2bf752d-ef6e-4e1b-be02-63a7a3e9ac7d",
+                    "blockType": "mintDocumentBlock",
+                    "defaultActive": false,
+                    "permissions": [
+                      "IoT"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "mint_ggcc",
+                    "children": [],
+                    "events": [
+                      {
+                        "target": "compliance_grid",
+                        "source": "mint_ggcc",
+                        "input": "RefreshEvent",
+                        "output": "RunEvent",
+                        "actor": "",
+                        "disabled": false
+                      }
+                    ],
+                    "artifacts": [],
+                    "tokenId": "0.0.8163838",
+                    "rule": "1",
+                    "accountType": "default"
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              },
+              {
+                "id": "533dc7c6-31be-41c5-a9e1-d41204b84a78",
+                "blockType": "interfaceContainerBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "IoT"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "blank"
+                },
+                "tag": "violation_path",
+                "children": [
+                  {
+                    "id": "5c0910a2-5818-48f9-80d1-b8313e3115a5",
+                    "blockType": "sendToGuardianBlock",
+                    "defaultActive": false,
+                    "permissions": [
+                      "IoT"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "save_violation",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "dataSource": "database",
+                    "documentType": "vc",
+                    "entityType": "evaluation(Violation)",
+                    "options": [
+                      {
+                        "name": "status",
+                        "value": "Violation"
+                      }
+                    ],
+                    "dataType": ""
+                  },
+                  {
+                    "id": "5f85c336-e1ba-43c2-9a8a-b82bee959768",
+                    "blockType": "mintDocumentBlock",
+                    "defaultActive": false,
+                    "permissions": [
+                      "IoT"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "mint_violation_nft",
+                    "children": [],
+                    "events": [
+                      {
+                        "target": "violations_grid",
+                        "source": "mint_violation_nft",
+                        "input": "RefreshEvent",
+                        "output": "RunEvent",
+                        "actor": "",
+                        "disabled": false
+                      }
+                    ],
+                    "artifacts": [],
+                    "tokenId": "0.0.8163841",
+                    "rule": "1",
+                    "accountType": "default"
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              },
+              {
+                "id": "5bb8769c-f861-4163-bc58-be4232421e9a",
+                "blockType": "interfaceContainerBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "IoT"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "type": "blank"
+                },
+                "tag": "review_path",
+                "children": [
+                  {
+                    "id": "fe9a8938-6ae7-4300-b99f-ceac4df8d4d0",
+                    "blockType": "sendToGuardianBlock",
+                    "defaultActive": false,
+                    "permissions": [
+                      "IoT"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "save_for_review",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "dataSource": "database",
+                    "documentType": "vc",
+                    "entityType": "evaluation(PendingReview)",
+                    "options": [
+                      {
+                        "name": "status",
+                        "value": "Pending Review"
+                      }
+                    ],
+                    "dataType": ""
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              }
+            ],
+            "events": [],
+            "artifacts": [],
+            "executionFlow": "firstTrue",
+            "conditions": [
+              {
+                "tag": "compliant_path",
+                "type": "equal",
+                "field": "document.credentialSubject.0.tokenAction",
+                "value": "mint_ggcc"
+              },
+              {
+                "tag": "violation_path",
+                "type": "equal",
+                "field": "document.credentialSubject.0.tokenAction",
+                "value": "mint_violation_nft"
+              },
+              {
+                "tag": "review_path",
+                "type": "equal",
+                "field": "document.credentialSubject.0.tokenAction",
+                "value": "pending_review"
+              }
+            ]
+          }
+        ],
+        "events": [],
+        "artifacts": []
+      },
+      {
+        "id": "a1c6580a-af4c-49f1-bd68-6267bbc6291d",
+        "blockType": "interfaceContainerBlock",
+        "defaultActive": true,
+        "permissions": [
+          "SPCB"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "type": "tabs"
+        },
+        "tag": "spcb_workflow",
+        "children": [
+          {
+            "id": "eb73ddd2-371a-43d4-a422-68128be83bff",
+            "blockType": "interfaceContainerBlock",
+            "defaultActive": true,
+            "permissions": [
+              "SPCB"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {
+              "type": "blank",
+              "title": "Facility Registrations"
+            },
+            "tag": "pending_registrations_page",
+            "children": [
+              {
+                "id": "87cb8472-95d1-4724-81a8-b79f3b3eee61",
+                "blockType": "interfaceDocumentsSourceBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "SPCB"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "fields": [
+                    {
+                      "title": "Facility",
+                      "name": "document.credentialSubject.0.facilityName",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Industry",
+                      "name": "document.credentialSubject.0.industryCategory",
+                      "type": "text"
+                    },
+                    {
+                      "title": "State",
+                      "name": "document.credentialSubject.0.state",
+                      "type": "text"
+                    },
+                    {
+                      "title": "CTO Number",
+                      "name": "document.credentialSubject.0.ctoNumber",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Status",
+                      "name": "option.status",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "tag": "registrations_grid",
+                "children": [
+                  {
+                    "id": "5bfaacf7-bb8c-41a5-b4b8-c4ae03be9435",
+                    "blockType": "documentsSourceAddon",
+                    "defaultActive": false,
+                    "permissions": [
+                      "SPCB"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "registrations_need_approve",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "schema": "#3037a243-dec7-438a-83fa-1d9174855e45",
+                    "dataType": "vc-documents",
+                    "filters": [
+                      {
+                        "type": "equal",
+                        "field": "option.status",
+                        "value": "Waiting for approval"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "91ee73f8-4a53-4e9e-801a-e6a035fdad51",
+                    "blockType": "documentsSourceAddon",
+                    "defaultActive": false,
+                    "permissions": [
+                      "SPCB"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "registrations_approved",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "schema": "#3037a243-dec7-438a-83fa-1d9174855e45",
+                    "dataType": "vc-documents",
+                    "filters": [
+                      {
+                        "type": "equal",
+                        "field": "option.status",
+                        "value": "Approved"
+                      }
+                    ]
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              },
+              {
+                "id": "015c534e-38ce-4a44-844f-3650e3c0b70a",
+                "blockType": "buttonBlock",
+                "defaultActive": false,
+                "permissions": [
+                  "SPCB"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "buttons": [
+                    {
+                      "tag": "Option_0",
+                      "name": "Approve",
+                      "type": "selector",
+                      "filters": [],
+                      "field": "option.status",
+                      "value": "Approved",
+                      "uiClass": "btn-approve"
+                    },
+                    {
+                      "tag": "Option_1",
+                      "name": "Reject",
+                      "type": "selector",
+                      "filters": [],
+                      "field": "option.status",
+                      "value": "Rejected",
+                      "uiClass": "btn-reject"
+                    }
+                  ]
+                },
+                "tag": "approve_registration_btn",
+                "children": [],
+                "events": [
+                  {
+                    "target": "save_registration_status_approved",
+                    "source": "approve_registration_btn",
+                    "input": "RunEvent",
+                    "output": "Option_0",
+                    "actor": "owner",
+                    "disabled": false
+                  },
+                  {
+                    "target": "save_registration_status_rejected",
+                    "source": "approve_registration_btn",
+                    "input": "RunEvent",
+                    "output": "Option_1",
+                    "actor": "owner",
+                    "disabled": false
+                  }
+                ],
+                "artifacts": [],
+                "type": "selector",
+                "field": "option.status"
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          },
+          {
+            "id": "a0dfa2c1-cec0-4e77-989f-505b79409e57",
+            "blockType": "interfaceContainerBlock",
+            "defaultActive": true,
+            "permissions": [
+              "SPCB"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {
+              "type": "blank",
+              "title": "Violations"
+            },
+            "tag": "violations_page",
+            "children": [
+              {
+                "id": "5b632321-24e6-4796-9293-6ddf60dd6870",
+                "blockType": "interfaceDocumentsSourceBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "SPCB"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "fields": [
+                    {
+                      "title": "Facility",
+                      "name": "document.credentialSubject.0.facilityId",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Violation Count",
+                      "name": "document.credentialSubject.0.violationCount",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Critical",
+                      "name": "document.credentialSubject.0.criticalViolationCount",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Action",
+                      "name": "document.credentialSubject.0.tokenAction",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Date",
+                      "name": "document.credentialSubject.0.evaluatedAt",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "tag": "violations_grid",
+                "children": [
+                  {
+                    "id": "c6443ab0-e1ec-4463-aca9-60e9506fa1c1",
+                    "blockType": "documentsSourceAddon",
+                    "defaultActive": false,
+                    "permissions": [
+                      "SPCB"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "violations_source",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "schema": "#db6734dd-2ccd-4ee3-8f6b-c129503f9215",
+                    "dataType": "vc-documents",
+                    "filters": [
+                      {
+                        "type": "equal",
+                        "field": "option.status",
+                        "value": "Violation"
+                      }
+                    ]
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          },
+          {
+            "id": "dde8f4a7-288f-4764-858c-ae5e789d1e15",
+            "blockType": "interfaceContainerBlock",
+            "defaultActive": true,
+            "permissions": [
+              "SPCB"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {
+              "type": "blank",
+              "title": "Compliance Monitor"
+            },
+            "tag": "compliance_monitor_page",
+            "children": [
+              {
+                "id": "123fffbc-5704-4eac-8b84-fc17e254529c",
+                "blockType": "interfaceDocumentsSourceBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "SPCB"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "fields": [
+                    {
+                      "title": "Facility",
+                      "name": "document.credentialSubject.0.facilityId",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Compliant",
+                      "name": "document.credentialSubject.0.overallCompliant",
+                      "type": "text"
+                    },
+                    {
+                      "title": "pH",
+                      "name": "document.credentialSubject.0.pH_value",
+                      "type": "text"
+                    },
+                    {
+                      "title": "BOD",
+                      "name": "document.credentialSubject.0.BOD_value",
+                      "type": "text"
+                    },
+                    {
+                      "title": "COD",
+                      "name": "document.credentialSubject.0.COD_value",
+                      "type": "text"
+                    },
+                    {
+                      "title": "TSS",
+                      "name": "document.credentialSubject.0.TSS_value",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Date",
+                      "name": "document.credentialSubject.0.evaluatedAt",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "tag": "monitor_grid",
+                "children": [
+                  {
+                    "id": "02d054f8-5504-4db1-9028-d3a7fdd177a7",
+                    "blockType": "documentsSourceAddon",
+                    "defaultActive": false,
+                    "permissions": [
+                      "SPCB"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "monitor_source",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "schema": "#db6734dd-2ccd-4ee3-8f6b-c129503f9215",
+                    "dataType": "vc-documents",
+                    "filters": []
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          }
+        ],
+        "events": [],
+        "artifacts": []
+      },
+      {
+        "id": "e5419d9b-0a50-4b8a-973c-1f2b80f0547a",
+        "blockType": "interfaceContainerBlock",
+        "defaultActive": true,
+        "permissions": [
+          "VVB"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "type": "tabs"
+        },
+        "tag": "vvb_workflow",
+        "children": [
+          {
+            "id": "5c04fbac-4115-4852-aa9c-3385adc2e057",
+            "blockType": "interfaceContainerBlock",
+            "defaultActive": true,
+            "permissions": [
+              "VVB"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {
+              "type": "blank",
+              "title": "Pending Review"
+            },
+            "tag": "flagged_violations_page",
+            "children": [
+              {
+                "id": "526ae03f-daa2-4d8b-b3ce-082436089233",
+                "blockType": "interfaceDocumentsSourceBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "VVB"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "fields": [
+                    {
+                      "title": "Facility",
+                      "name": "document.credentialSubject.0.facilityId",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Violations",
+                      "name": "document.credentialSubject.0.violationCount",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Action",
+                      "name": "document.credentialSubject.0.tokenAction",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Date",
+                      "name": "document.credentialSubject.0.evaluatedAt",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "tag": "flagged_grid",
+                "children": [
+                  {
+                    "id": "add21d85-243d-4e67-8e6c-d355701d8f21",
+                    "blockType": "documentsSourceAddon",
+                    "defaultActive": false,
+                    "permissions": [
+                      "VVB"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "flagged_source",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "schema": "#db6734dd-2ccd-4ee3-8f6b-c129503f9215",
+                    "dataType": "vc-documents",
+                    "filters": [
+                      {
+                        "type": "equal",
+                        "field": "option.status",
+                        "value": "Pending Review"
+                      }
+                    ]
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          },
+          {
+            "id": "f758d121-75aa-4537-a1de-ccf4e5b94e6e",
+            "blockType": "interfaceContainerBlock",
+            "defaultActive": true,
+            "permissions": [
+              "VVB"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {
+              "type": "blank",
+              "title": "Satellite Validation"
+            },
+            "tag": "satellite_data_page",
+            "children": [
+              {
+                "id": "4d17da0b-ccd0-473e-bce2-5626196f0b4f",
+                "blockType": "interfaceDocumentsSourceBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "VVB"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {
+                  "fields": [
+                    {
+                      "title": "Facility",
+                      "name": "document.credentialSubject.0.facilityId",
+                      "type": "text"
+                    },
+                    {
+                      "title": "NDTI",
+                      "name": "document.credentialSubject.0.NDTI_value",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Turbidity",
+                      "name": "document.credentialSubject.0.turbidity_NTU",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Correlation",
+                      "name": "document.credentialSubject.0.correlationScore",
+                      "type": "text"
+                    },
+                    {
+                      "title": "Date",
+                      "name": "document.credentialSubject.0.sentinelTileDate",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "tag": "satellite_grid",
+                "children": [
+                  {
+                    "id": "8296bcf9-7ead-4daa-a6c2-670945e8bd7e",
+                    "blockType": "documentsSourceAddon",
+                    "defaultActive": false,
+                    "permissions": [
+                      "VVB"
+                    ],
+                    "onErrorAction": "no-action",
+                    "uiMetaData": {},
+                    "tag": "satellite_source",
+                    "children": [],
+                    "events": [],
+                    "artifacts": [],
+                    "schema": "#b57b43c6-91ce-479d-983d-65cdea7a7d95",
+                    "dataType": "vc-documents",
+                    "filters": []
+                  }
+                ],
+                "events": [],
+                "artifacts": []
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          }
+        ],
+        "events": [],
+        "artifacts": []
+      },
+      {
+        "id": "a744f52d-1531-4b97-a622-d2dbd68f9da6",
+        "blockType": "interfaceContainerBlock",
+        "defaultActive": true,
+        "permissions": [
+          "OWNER"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "type": "blank",
+          "title": "VP"
+        },
+        "tag": "VP",
+        "children": [
+          {
+            "id": "9854bf83-0df7-494b-97ab-c0b544a5a598",
+            "blockType": "interfaceDocumentsSourceBlock",
+            "defaultActive": true,
+            "permissions": [
+              "OWNER"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "vp_grid",
+            "children": [
+              {
+                "id": "a95f23db-3b6f-471c-b1f6-c7cf217a35b2",
+                "blockType": "documentsSourceAddon",
+                "defaultActive": false,
+                "permissions": [
+                  "OWNER"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "vp_source",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "dataType": "vp-documents",
+                "filters": []
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          }
+        ],
+        "events": [],
+        "artifacts": []
+      },
+      {
+        "id": "45a282bc-092c-4b6d-84d2-25f345c1abf7",
+        "blockType": "interfaceContainerBlock",
+        "defaultActive": true,
+        "permissions": [
+          "OWNER"
+        ],
+        "onErrorAction": "no-action",
+        "uiMetaData": {
+          "type": "blank",
+          "title": "Trust Chain"
+        },
+        "tag": "trust_chain",
+        "children": [
+          {
+            "id": "58469343-f54b-4a0b-bc0d-5ddd395e8b6c",
+            "blockType": "reportBlock",
+            "defaultActive": true,
+            "permissions": [
+              "OWNER"
+            ],
+            "onErrorAction": "no-action",
+            "uiMetaData": {},
+            "tag": "trustChainBlock",
+            "children": [
+              {
+                "id": "ab3055a8-f396-46ac-a077-a33aaf6a893d",
+                "blockType": "reportItemBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "OWNER"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "MintTokenItem",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "filters": [],
+                "dynamicFilters": [],
+                "visible": true,
+                "iconType": "COMMON",
+                "icon": "token",
+                "title": "Token Mint",
+                "description": "Minted compliance/violation token",
+                "multiple": false
+              },
+              {
+                "id": "83f61ca7-1216-475c-a641-ea323306f585",
+                "blockType": "reportItemBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "OWNER"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "evaluation_report",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "filters": [],
+                "dynamicFilters": [],
+                "visible": true,
+                "iconType": "COMMON",
+                "icon": "report",
+                "title": "Compliance Evaluation",
+                "description": "CPCB Schedule-VI compliance check result",
+                "multiple": false
+              },
+              {
+                "id": "88bd7624-b55e-4010-91c4-db99a8d2b072",
+                "blockType": "reportItemBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "OWNER"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "reading_report",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "filters": [],
+                "dynamicFilters": [],
+                "visible": true,
+                "iconType": "COMMON",
+                "icon": "report",
+                "title": "Sensor Reading",
+                "description": "OCEMS sensor data with KMS signature",
+                "multiple": true
+              },
+              {
+                "id": "883f7211-291d-45ce-8c07-3f37af752619",
+                "blockType": "reportItemBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "OWNER"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "facility_report_approved",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "filters": [],
+                "dynamicFilters": [],
+                "visible": true,
+                "iconType": "COMMON",
+                "icon": "report",
+                "title": "Facility Registration (Approved)",
+                "description": "SPCB-approved facility registration",
+                "multiple": false
+              },
+              {
+                "id": "56185917-61b8-4e98-9cf1-8c436a232876",
+                "blockType": "reportItemBlock",
+                "defaultActive": true,
+                "permissions": [
+                  "OWNER"
+                ],
+                "onErrorAction": "no-action",
+                "uiMetaData": {},
+                "tag": "facility_report_submit",
+                "children": [],
+                "events": [],
+                "artifacts": [],
+                "filters": [],
+                "dynamicFilters": [],
+                "visible": true,
+                "iconType": "COMMON",
+                "icon": "report",
+                "title": "Facility Registration (Submitted)",
+                "description": "Original facility registration submission",
+                "multiple": false
+              }
+            ],
+            "events": [],
+            "artifacts": []
+          }
+        ],
+        "events": [],
+        "artifacts": []
+      }
+    ],
+    "events": [],
+    "artifacts": []
+  },
+  "policyRoles": [
+    "Facility",
+    "SPCB",
+    "VVB",
+    "IoT"
+  ],
+  "policyTopics": [
+    {
+      "name": "Project",
+      "description": "Facility registration and compliance data",
+      "type": "any",
+      "static": false,
+      "memoObj": "topic"
+    }
+  ],
+  "policyTokens": [],
+  "policyGroups": []
+}

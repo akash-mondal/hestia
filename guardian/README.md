@@ -1,6 +1,6 @@
 # Guardian dMRV Policy Engine
 
-Zeno's Guardian component provides the governance and orchestration layer for industrial effluent compliance verification. It runs on **Managed Guardian Service (MGS)** — Hedera's free hosted Guardian instance — and manages the full digital MRV (Measurement, Reporting, Verification) lifecycle.
+Zeno's Guardian component provides the governance and orchestration layer for industrial effluent compliance verification. It manages the full digital MRV (Measurement, Reporting, Verification) lifecycle using Hedera Guardian's policy engine.
 
 ## Architecture
 
@@ -18,27 +18,33 @@ They run in parallel — Guardian does NOT replace the pipeline.
 Guardian adds: W3C Verifiable Credentials, role-based workflow, auditable trust chain.
 ```
 
-## MGS Instance
+## Guardian Instance
 
 | Property | Value |
 |----------|-------|
-| URL | https://guardianservice.app/ |
-| API Base | https://guardianservice.app/api/v1/ |
 | Hedera Account | 0.0.7231410 (ED25519) |
 | DID | did:hedera:testnet:4VgrsrHeV4tegS3M7B5N17v795zUEdeHexYtWA8E94Jr_0.0.8155225 |
 | Standard Registry | Central Pollution Control Board (CPCB) |
 | Network | Hedera Testnet |
 
-## Schemas (Deployed on MGS)
+## Tokens (Created on Hedera Testnet)
 
-All schemas are deployed as Draft on MGS. JSON source files in `schemas/` match the Guardian internal format (with `_mgs` metadata for tracking).
+| Token | ID | Type | Symbol | Purpose |
+|-------|-----|------|--------|---------|
+| Green Ganga Compliance Credit | 0.0.8163838 | Fungible | GGCC | 1 token = 1 compliant evaluation period |
+| Violation Record | 0.0.8163841 | NFT | ZVIOL | Immutable violation record with evidence |
+| Compliance Certificate | 0.0.8163843 | NFT | ZCERT | 90-day sustained compliance certificate |
 
-| Schema | Topic ID | Entity | Fields | Purpose |
-|--------|----------|--------|--------|---------|
-| [FacilityRegistration](schemas/FacilityRegistration.json) | 0.0.8162024 | VC | 17 | Industrial facility identity, CTO details, OCEMS device info, KMS key binding |
-| [SensorReading](schemas/SensorReading.json) | 0.0.8162042 | VC | 16 | OCEMS sensor data with CPCB Schedule-VI parameters, KMS signature |
-| [ComplianceEvaluation](schemas/ComplianceEvaluation.json) | 0.0.8162309 | VC | 21 | Per-parameter compliance results, violation counts, token action |
-| [SatelliteValidation](schemas/SatelliteValidation.json) | 0.0.8162313 | VC | 7 | Sentinel-2 Se2WaQ water quality indices for cross-validation |
+## Schemas
+
+4 VC schemas define the data model. JSON source files in `schemas/` use Guardian's JSON Schema Draft 7 format.
+
+| Schema | Entity | Fields | Purpose |
+|--------|--------|--------|---------|
+| [FacilityRegistration](schemas/FacilityRegistration.json) | VC | 17 | Industrial facility identity, CTO details, OCEMS device info, KMS key binding |
+| [SensorReading](schemas/SensorReading.json) | VC | 16 | OCEMS sensor data with CPCB Schedule-VI parameters, KMS signature |
+| [ComplianceEvaluation](schemas/ComplianceEvaluation.json) | VC | 21 | Per-parameter compliance results, violation counts, token action |
+| [SatelliteValidation](schemas/SatelliteValidation.json) | VC | 7 | Sentinel-2 Se2WaQ water quality indices for cross-validation |
 
 ### Schema Field Summary
 
@@ -67,28 +73,87 @@ All schemas are deployed as Draft on MGS. JSON source files in `schemas/` match 
 - NDTI_value, NDCI_value, turbidity_NTU, chlorophyll_mgm3
 - correlationScore (OCEMS vs satellite agreement)
 
-## Policy Design
+## Policy Design (65 Blocks)
+
+The complete policy is built programmatically via `scripts/build-policy.py` and exported to `policies/zeno-dmrv-v1.policy.json`. The policy tree has 65 blocks across 5 role workflows.
 
 ### Roles
-1. **Standard Registry (CPCB)** — Publishes methodology, overall governance
-2. **Facility** — Industrial plant operator, submits registration
-3. **SPCB** — State Pollution Control Board inspector, approves/monitors
-4. **VVB** — Verification/Validation Body auditor
-5. **IoT** — Automated sensor data service (externalDataBlock)
+1. **Standard Registry (CPCB)** — Publishes methodology, overall governance, trust chain view
+2. **Facility** — Industrial plant operator, submits registration, views compliance dashboard
+3. **SPCB** — State Pollution Control Board inspector, approves registrations, monitors violations
+4. **VVB** — Verification/Validation Body auditor, reviews flagged violations, satellite data
+5. **IoT** — Automated sensor data service (externalDataBlock ingestion)
 
 ### Workflow Stages
-1. **Registration**: Facility submits FacilityRegistration VC → SPCB approves
-2. **Sensor Ingestion**: IoT submits SensorReading via externalDataBlock → compliance check
-3. **Compliant Path**: Aggregate → HCS log → mint GGCC token
-4. **Violation Path**: Flag for SPCB → satellite cross-validation → VVB review → mint ViolationNFT
-5. **Post-Issuance**: Token transfer, retirement, 90-day ComplianceCertNFT
 
-### Key Policy Blocks
-- `externalDataBlock` — Receives KMS-signed sensor data via REST API
-- `customLogicBlock` — CPCB Schedule-VI compliance check (JavaScript)
-- `switchBlock` — Routes compliant vs violation vs pending review
-- `mintDocumentBlock` — Mints GGCC (compliant) or ViolationNFT (violation)
-- `reportBlock` + `reportItemBlock` — Trust chain drill-down
+```
+Stage 1 — Registration:
+  Facility submits FacilityRegistration VC
+  → sendToGuardianBlock (Hedera + DB, status: "Waiting for approval")
+  → informationBlock (wait screen)
+  → SPCB sees in registrations grid → Approve/Reject buttons
+  → On approve: reassigningBlock (re-sign by CPCB) → save approved copy
+
+Stage 2 — Sensor Ingestion:
+  IoT role → externalDataBlock (REST API intake, SensorReading schema)
+  → documentValidatorBlock (schema + KMS signature check)
+  → customLogicBlock (CPCB Schedule-VI compliance JavaScript)
+  → sendToGuardianBlock (save evaluation to Hedera + DB)
+  → switchBlock (route by tokenAction field)
+
+Stage 3a — Compliant Path:
+  tokenAction == "mint_ggcc"
+  → save with status "Compliant"
+  → mintDocumentBlock (GGCC fungible token)
+
+Stage 3b — Violation Path:
+  tokenAction == "mint_violation_nft"
+  → save with status "Violation"
+  → mintDocumentBlock (ZVIOL NFT)
+
+Stage 3c — Pending Review Path:
+  tokenAction == "pending_review"
+  → save with status "Pending Review"
+  → VVB reviews in flagged violations grid
+
+Stage 4 — Trust Chain:
+  reportBlock with 5 reportItemBlocks
+  → Token Mint → Evaluation → Sensor Reading → Facility (Approved) → Facility (Submitted)
+```
+
+### Compliance Check Logic (customLogicBlock JavaScript)
+
+The `customLogicBlock` runs CPCB Schedule-VI threshold checks:
+
+| Parameter | Limit | Critical Threshold |
+|-----------|-------|--------------------|
+| pH | 5.5–9.0 (range) | — |
+| BOD | ≤ 30 mg/L | > 45 mg/L |
+| COD | ≤ 250 mg/L | > 375 mg/L |
+| TSS | ≤ 100 mg/L | > 150 mg/L |
+| Temperature | ≤ 40°C | — |
+| Total Chromium | ≤ 2.0 mg/L | > 3.0 mg/L |
+
+Output `tokenAction`: `mint_ggcc` (all compliant), `mint_violation_nft` (critical violations), `pending_review` (minor violations, needs VVB review).
+
+### Key Policy Blocks Used
+
+| Block Type | Tag | Purpose |
+|------------|-----|---------|
+| `policyRolesBlock` | choose_role | Role selection (Facility/SPCB/VVB/IoT) |
+| `requestVcDocumentBlock` | facility_registration_form | FacilityRegistration form |
+| `externalDataBlock` | sensor_data_intake | REST API sensor data ingestion |
+| `documentValidatorBlock` | validate_reading | Schema + signature validation |
+| `customLogicBlock` | compliance_check | CPCB Schedule-VI JS evaluation |
+| `switchBlock` | compliance_router | Route by compliance result |
+| `mintDocumentBlock` | mint_ggcc / mint_violation_nft | Token minting |
+| `sendToGuardianBlock` | (multiple) | Save to Hedera HCS + internal DB |
+| `reassigningBlock` | sign_by_cpcb | Re-sign approved registration by SR |
+| `interfaceDocumentsSourceBlock` | (grids) | Data display tables for each role |
+| `documentsSourceAddon` | (sources) | Data source with filters for grids |
+| `buttonBlock` | approve_registration_btn | Approve/Reject buttons for SPCB |
+| `reportBlock` + `reportItemBlock` | trustChainBlock | Trust chain drill-down |
+| `informationBlock` | wait_for_approval | Status messages |
 
 ## Directory Structure
 
@@ -101,35 +166,97 @@ guardian/
 │   ├── SensorReading.json           # 16 fields, OCEMS MRV data
 │   ├── ComplianceEvaluation.json    # 21 fields, compliance results
 │   └── SatelliteValidation.json     # 7 fields, satellite cross-check
-└── policies/
-    └── (policy JSON exported after build)
+├── policies/
+│   └── zeno-dmrv-v1.policy.json     # Full 65-block policy export (auto-generated)
+└── scripts/
+    ├── build-policy.py              # Builds complete policy block tree + pushes via API
+    └── dry-run-test.py              # Dry-run testing: virtual users, role assignment, data flow
 ```
 
-## MGS Schema Format Notes
+## Scripts
 
-The MGS UI JSON editor uses a simplified internal format:
+### build-policy.py
 
-```json
-{
-  "name": "SchemaName",
-  "description": "...",
-  "entity": "VC",          // Must be: NONE, VC, or EVC
-  "fields": [
-    {
-      "key": "fieldKey",   // Required — internal identifier
-      "name": "fieldKey",  // Required — matches key
-      "title": "Display Label",
-      "description": "...",
-      "type": "string",    // string, number, integer, boolean
-      "required": true,
-      "isArray": false
-    }
-  ],
-  "conditions": []
-}
+Programmatically constructs the complete 65-block policy tree and pushes it to a Guardian instance via REST API. Contains:
+- All block definitions with proper nesting, permissions, and events
+- CPCB Schedule-VI compliance check JavaScript (customLogicBlock)
+- Token references (GGCC, ZVIOL, ZCERT)
+- Schema IRI references for all 4 VC types
+
+```bash
+python3 scripts/build-policy.py --dry-run   # Preview block tree
+python3 scripts/build-policy.py --push      # Push to Guardian API
 ```
 
-Key learnings:
-- `entity` must be one of `NONE`, `VC`, `EVC` — NOT "MRV" (MRV is set on the externalDataBlock)
-- `enum` arrays are NOT supported in the simplified JSON editor — use Simplified tab or policy-level validation
-- Each field requires both `key` and `name` properties
+### dry-run-test.py
+
+Tests the full policy workflow in Guardian's dry-run mode (virtual users, no HBAR spent):
+1. Start dry-run mode
+2. Create virtual users
+3. Assign roles (Facility, SPCB, IoT)
+4. Submit facility registration
+5. SPCB approval flow
+6. Sensor data submission
+7. Compliance check verification
+
+```bash
+python3 scripts/dry-run-test.py
+```
+
+## Guardian API Patterns
+
+### Authentication
+```
+POST /accounts/login        → { refreshToken }
+POST /accounts/access-token → { accessToken }
+```
+
+### Policy Lifecycle
+```
+GET    /policies/{id}           → policy details + config
+PUT    /policies/{id}           → update policy config
+PUT    /policies/{id}/dry-run   → start dry-run (no body, no Content-Type)
+PUT    /policies/{id}/draft     → reset to draft
+```
+
+### Dry-Run Operations
+```
+POST   /policies/{id}/dry-run/user     → create virtual user (no body)
+POST   /policies/{id}/dry-run/login    → login as virtual user { did }
+POST   /policies/{id}/dry-run/restart  → restart dry-run
+GET    /policies/{id}/blocks           → get visible blocks for current user
+GET    /policies/{id}/tag/{tag}/blocks → get specific block by tag
+POST   /policies/{id}/tag/{tag}/blocks → submit data to block
+```
+
+### Schema API (JSON Schema Draft 7)
+```
+POST   /schemas/{topicId}   → create schema on policy topic
+PUT    /schemas/{id}/publish → publish schema (IRI changes to #uuid&version)
+```
+
+## Key Learnings
+
+### Schema Requirements
+- Entity must be `NONE`, `VC`, or `EVC` — NOT "MRV"
+- Schemas MUST be on the same HCS topic as the policy — schemas on different topics are invisible
+- API requires JSON Schema Draft 7 format with `$id`, `$comment`, `properties` using `fieldN` keys
+- DRAFT schemas use `#uuid` IRI format; PUBLISHED use `#uuid&version`
+
+### Block Configuration
+- `documentsSourceAddon.filters` MUST be an array `[]`, never a plain object — Guardian calls `.filter()` on it
+- `documentValidatorBlock` requires `documentType: "vc-document"`
+- `mintDocumentBlock.tokenId` references actual Hedera token ID (e.g., `0.0.8163838`), not template tags
+- `switchBlock.conditions` routes by field values with `executionFlow: "firstTrue"`
+- `buttonBlock` events use `output: "Option_0"` / `"Option_1"` format
+
+### Dry-Run Mode
+- `PUT /dry-run` requires NO body and NO Content-Type header
+- `POST /dry-run/user` also requires no Content-Type
+- Virtual users get `NO_ROLE` initially, must select role via `policyRolesBlock`
+- `POST /dry-run/login` with `{ "did": "..." }` switches user context
+
+### Guardian Deployment
+- Self-hosted: Docker Compose, ~12 core services, minimum 4 vCPU / 8GB RAM
+- MGS (Managed): Free hosted at guardianservice.app — shared instance, can be unstable
+- ED25519 keys ONLY for Hedera accounts (not ECDSA)
