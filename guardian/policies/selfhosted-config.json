@@ -1,0 +1,15 @@
+{
+  "guardian_url": "http://165.22.212.120:3000/api/v1",
+  "policy_id": "69b2891d42d30f9a24fc9a18",
+  "policy_topic_id": "0.0.8181382",
+  "schema_iris": {
+    "FacilityRegistration": "#4446ea1a-7631-48fe-9205-47991c4d6cdf&1.0.0",
+    "SensorReading": "#71192499-361c-4f86-a745-728bbdaae846&1.0.0",
+    "ComplianceEvaluation": "#cc56ae96-e6ac-4b0e-9b9e-ebe835c10393&1.0.0",
+    "SatelliteValidation": "#939b3017-c83b-4d0d-94f3-c32bd32c8653&1.0.0"
+  },
+  "token_ids": {
+    "GGCC": "0.0.8182260",
+    "ZVIOL": "0.0.8182266"
+  }
+}
