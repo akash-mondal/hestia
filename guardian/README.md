@@ -1,97 +1,71 @@
 # Guardian dMRV Policy
 
-Governance and VC orchestration layer for Zeno. Manages the digital MRV lifecycle: facility registration, SPCB approval, sensor data intake, compliance evaluation, and trust chain.
+Self-hosted Guardian 3.5.0 on DigitalOcean (`165.22.212.120`). Published v1.0.0.
 
-Self-hosted on DigitalOcean (`165.22.212.120`), Guardian 3.5.0.
+Full dMRV lifecycle: facility registration → SPCB approval → sensor readings → compliance evaluation → token minting → trust chain.
 
-## How It Works
+## Pipeline
 
 ```mermaid
 sequenceDiagram
     participant F as Facility
     participant G as Guardian
-    participant SPCB as SPCB Inspector
+    participant SPCB as SPCB
     participant IoT as IoT Service
     participant MW as Middleware
 
-    F->>G: Submit FacilityRegistration VC
-    SPCB->>G: Approve registration
-    IoT->>G: Submit SensorReading VCs (cyclic)
-    MW->>G: Read readings (as SPCB)
-    MW->>MW: Run CPCB Schedule-VI compliance
-    MW->>G: Submit ComplianceEvaluation VCs (as IoT)
-    SPCB->>G: View evaluations grid
+    F->>G: FacilityRegistration VC
+    SPCB->>G: Approve
+    IoT->>G: SensorReading VCs (cyclic)
+    MW->>G: Read readings (SPCB role)
+    MW->>MW: CPCB Schedule-VI compliance
+    MW->>G: ComplianceEvaluation VCs (IoT role)
+    G->>G: switchBlock routes by field20
+    G->>G: mintDocumentBlock → GGCC or ZVIOL
+    G->>G: VP bundle (trust chain)
 ```
 
-Guardian saves VCs and provides grids/trust chain. Compliance evaluation is handled by middleware (not in-policy) because Guardian's `customLogicBlock` and `calculateContainerBlock` don't auto-execute reliably via events.
+Compliance evaluation runs in middleware. switchBlock routes results: compliant → mint GGCC (fungible), violation → mint ZVIOL (NFT). mintDocumentBlock creates VP bundles linking evaluation → token for trust chain drill-down.
 
-## Roles
+## 51 Blocks, 4 Roles
 
-| Role | What they do |
-|------|-------------|
-| **Standard Registry** (CPCB) | Publishes methodology, trust chain |
-| **Facility** | Submits registration, views compliance |
-| **SPCB** | Approves registrations, monitors readings + evaluations |
-| **VVB** | Reviews flagged violations |
-| **IoT** | Submits sensor readings + compliance evaluations |
+| Role | Workflow |
+|------|----------|
+| **Facility** | Register (17-field VC), view readings, view tokens |
+| **SPCB** | Approve/reject registrations, monitor readings grid, evaluations grid |
+| **VVB** | Review flagged violations, satellite validation data |
+| **IoT** | Submit sensor readings + compliance evaluations (cyclic) |
 
-## Schemas (4 VC types)
+## Schemas
 
-| Schema | Fields | Purpose |
-|--------|--------|---------|
-| FacilityRegistration | 17 | Facility identity, CTO, OCEMS device, KMS key |
-| SensorReading | 16 | 9 CPCB Schedule-VI parameters + KMS signature |
-| ComplianceEvaluation | 21 | Per-parameter compliance flags + token action |
-| SatelliteValidation | 7 | Sentinel-2 NDTI/NDCI cross-validation |
+| Schema | Fields | IRI |
+|--------|--------|-----|
+| FacilityRegistration | 17 | `#4446ea1a-...&1.0.0` |
+| SensorReading | 16 | `#71192499-...&1.0.0` |
+| ComplianceEvaluation | 21 | `#cc56ae96-...&1.0.0` |
+| SatelliteValidation | 7 | `#939b3017-...&1.0.0` |
+
+## Tokens
+
+| Token | ID | Type |
+|-------|----|------|
+| GGCC (Green Ganga Compliance Credit) | `0.0.8182260` | Fungible |
+| ZVIOL (Zeno Violation Record) | `0.0.8182266` | NFT |
 
 ## Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `deploy-selfhosted.py` | Full policy deployment (schemas, tokens, blocks) |
-| `update-blocks.py` | Quick block-only update (no schema recreation) |
-| `test-dry-run.py` | E2E dry-run test: register -> approve -> 5 readings -> 5 evaluations |
-| `middleware-compliance.py` | Reads SensorReading VCs, runs compliance, submits evaluations |
-
-### Running
-
 ```bash
-# Deploy policy
-python3 guardian/scripts/deploy-selfhosted.py
-
-# Test full pipeline
-python3 guardian/scripts/test-dry-run.py
-
-# Run compliance middleware (one-shot or continuous)
-python3 guardian/scripts/middleware-compliance.py
-python3 guardian/scripts/middleware-compliance.py --continuous
+python3 guardian/scripts/deploy-selfhosted.py     # Full deploy (schemas + blocks)
+python3 guardian/scripts/update-blocks.py --dry-run # Block-only update + dry-run
+python3 guardian/scripts/test-dry-run.py            # E2E: register → approve → 5 readings → 5 evaluations → mint
+python3 guardian/scripts/middleware-compliance.py    # One-shot compliance evaluation
 ```
 
-## Policy Instance
+## Key Implementation Details
 
-| Item | Value |
-|------|-------|
-| Policy ID | `69b2891d42d30f9a24fc9a18` |
-| GGCC Token | `0.0.8182260` |
-| ZVIOL Token | `0.0.8182266` |
-| Guardian URL | `http://165.22.212.120:3000/api/v1` |
-
-## Directory
-
-```
-guardian/
-├── schemas/                    # 4 JSON Schema Draft 7 VC schemas
-├── policies/
-│   ├── selfhosted-config.json  # Schema IRIs + token IDs
-│   └── zeno-dmrv-v1.policy.json
-└── scripts/                    # Deploy, test, middleware
-```
-
-## Key Learnings
-
-- Only `requestVcDocumentBlock` accepts data via tag API POST. Other blocks return 422.
-- `interfaceStepBlock` with `cyclic=True` works if there's no terminal `informationBlock`.
-- Schemas must be on the same HCS topic as the policy.
-- `documentsSourceAddon.filters` must be an array `[]`, not an object.
-- Dry-run: `PUT /dry-run` needs no body and no Content-Type header.
-- Virtual users start as `NO_ROLE` — must select role via `policyRolesBlock`.
+- switchBlock conditions are **mathjs formula expressions** evaluated against VC credentialSubject scope: `"field20 == 'mint_ggcc'"`, not field+value objects
+- switchBlock has `ChildrenType.None` — routes to mint blocks via **events**, not children
+- mintDocumentBlock uses `tokenId` directly (no template needed) with `rule: "1"`
+- `requestVcDocumentBlock` is the only block that accepts data via tag API POST
+- `interfaceStepBlock` with `cyclic=True` enables repeated submissions
+- Dry-run `PUT /dry-run` needs no body and no Content-Type header

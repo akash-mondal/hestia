@@ -196,9 +196,8 @@ def build_policy_config():
     )
 
     # ── IoT WORKFLOW ──
-    # Two cyclic step blocks:
-    # 1. sensor_data_intake: IoT user submits SensorReading VCs
-    # 2. compliance_evaluation_intake: Middleware submits ComplianceEvaluation VCs
+    # 1. sensor_data_intake: IoT user submits SensorReading VCs (cyclic)
+    # 2. compliance_evaluation_intake: Middleware submits CE VCs → switchBlock → mintDocumentBlock
     iot_workflow = block("interfaceContainerBlock", "iot_workflow",
         permissions=["IoT"],
         uiMetaData={"type": "blank"},
@@ -239,7 +238,39 @@ def build_policy_config():
                         dataType="vc-documents",
                         stopPropagation=False,
                     ),
+                    # Route by compliance result → mint tokens (events connect to mint blocks below)
+                    block("switchBlock", "compliance_router",
+                        permissions=["IoT"],
+                        executionFlow="firstTrue",
+                        conditions=[
+                            {"tag": "mint_ggcc_path", "type": "equal",
+                             "value": "field20 == 'mint_ggcc'"},
+                            {"tag": "mint_violation_path", "type": "equal",
+                             "value": "field20 == 'mint_violation_nft'"},
+                        ],
+                        events=[
+                            {"source": "compliance_router", "target": "mint_ggcc_block",
+                             "input": "RunEvent", "output": "mint_ggcc_path",
+                             "actor": "", "disabled": False},
+                            {"source": "compliance_router", "target": "mint_violation_block",
+                             "input": "RunEvent", "output": "mint_violation_path",
+                             "actor": "", "disabled": False},
+                        ],
+                    ),
                 ],
+            ),
+            # Mint blocks — triggered by switchBlock events (not children)
+            block("mintDocumentBlock", "mint_ggcc_block",
+                permissions=["IoT"],
+                tokenId=GGCC_TOKEN_ID,
+                rule="1",
+                accountType="default",
+            ),
+            block("mintDocumentBlock", "mint_violation_block",
+                permissions=["IoT"],
+                tokenId=ZVIOL_TOKEN_ID,
+                rule="1",
+                accountType="default",
             ),
         ],
     )
@@ -552,7 +583,24 @@ def main():
         "static": False,
         "memoObj": "topic",
     }]
-    current["policyTokens"] = []
+    current["policyTokens"] = [
+        {
+            "templateTokenTag": "GGCC_token",
+            "tokenName": "Green Ganga Compliance Credit",
+            "tokenSymbol": "GGCC",
+            "tokenType": "fungible",
+            "decimals": "0",
+            "initialSupply": "0",
+            "tokenId": GGCC_TOKEN_ID,
+        },
+        {
+            "templateTokenTag": "ZVIOL_token",
+            "tokenName": "Zeno Violation Record",
+            "tokenSymbol": "ZVIOL",
+            "tokenType": "non-fungible",
+            "tokenId": ZVIOL_TOKEN_ID,
+        },
+    ]
     current["policyGroups"] = []
 
     for key in ["_id", "id", "createDate", "updateDate", "hashMap", "hashMapFileId",
