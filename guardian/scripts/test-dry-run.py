@@ -149,13 +149,24 @@ def main():
             new_status = reg_check["data"][0].get("option", {}).get("status", "?")
             print(f"  Status after approval: {new_status}")
 
-    # ── IoT sensor readings ──
-    step("IoT: submit 5 sensor readings")
+    # ── Token association (VM0033 step 2) ──
+    step("Token association for IoT user")
     requests.post(f"{GUARDIAN_URL}/policies/{POLICY_ID}/dry-run/login",
                   headers=headers(token), json={"did": iot_did})
     time.sleep(1)
     post_tag(token, "choose_role", {"role": "IoT"})
     time.sleep(3)
+
+    # Associate GGCC and ZVIOL tokens (like VM0033 PUT /tokens/{id}/associate)
+    for tok_id, tok_name in [("0.0.8182260", "GGCC"), ("0.0.8182266", "ZVIOL")]:
+        r = requests.put(f"{GUARDIAN_URL}/tokens/{tok_id}/associate",
+                         headers={"Authorization": f"Bearer {token}"})
+        status = "OK" if r.status_code in [200, 201] else f"skip ({r.status_code})"
+        print(f"  {tok_name} ({tok_id}): {status}")
+    time.sleep(2)
+
+    # ── IoT sensor readings ──
+    step("IoT: submit 5 sensor readings")
 
     # Mix of compliant and violation readings
     readings = [
@@ -322,7 +333,8 @@ def main():
     r = requests.get(f"{GUARDIAN_URL}/policies/{POLICY_ID}/dry-run/transactions",
                      headers={"Authorization": f"Bearer {token}"})
     txns = r.json() if r.status_code == 200 else []
-    tx_count = len(txns) if isinstance(txns, list) else len(txns.get("data", []))
+    tx_list = txns if isinstance(txns, list) else txns.get("data", [])
+    tx_count = len(tx_list)
 
     r = requests.get(f"{GUARDIAN_URL}/policies/{POLICY_ID}/dry-run/artifacts",
                      headers={"Authorization": f"Bearer {token}"})
@@ -332,17 +344,41 @@ def main():
     reading_count = len(monitor.get("data", [])) if monitor else 0
     reg_count_final = len(regs.get("data", [])) if regs else 0
 
+    # Transaction type breakdown
+    from collections import Counter
+    tx_types = Counter(t.get("type", "?") for t in tx_list)
+    mint_count = tx_types.get("TokenMintTransaction", 0)
+    nft_mint_count = tx_types.get("TokenMintNFTTransaction", 0)
+
     print(f"\n  DRY-RUN STATS:")
     print(f"    Transactions: {tx_count}")
     print(f"    Artifacts: {art_count}")
+    print(f"    Transaction breakdown:")
+    for t, c in tx_types.most_common():
+        print(f"      {t}: {c}")
+
+    # Count VP documents (trust chain bundles)
+    vp_count = 0
+    for a in (arts if isinstance(arts, list) else []):
+        doc = a.get("document", {})
+        if isinstance(doc.get("type", []), list) and "VerifiablePresentation" in doc.get("type", []):
+            vp_count += 1
+
+    print(f"\n  MINTING & TRUST CHAIN:")
+    print(f"    GGCC mints (fungible): {mint_count}")
+    print(f"    ZVIOL mints (NFT): {nft_mint_count}")
+    print(f"    VP bundles (trust chain): {vp_count}")
 
     print(f"\n{'='*60}")
-    success = ok_count >= 3 and reading_count >= 3 and eval_count >= 3
+    has_mints = mint_count > 0 or nft_mint_count > 0
+    success = ok_count >= 3 and reading_count >= 3 and eval_count >= 3 and has_mints
     print(f"  GUARDIAN DRY-RUN: {'SUCCESS' if success else 'PARTIAL'}")
     print(f"  Readings submitted: {ok_count}/{len(readings)}")
     print(f"  Readings in monitor: {reading_count}")
     print(f"  Evaluations: {eval_count}")
     print(f"  Registrations: {reg_count_final}")
+    print(f"  Token minting: {'WORKING' if has_mints else 'NOT WORKING'}")
+    print(f"  Trust chain VPs: {vp_count}")
     print(f"{'='*60}")
 
     return 0 if success else 1
