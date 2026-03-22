@@ -74,8 +74,8 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 5 of 8 · Treatment Report
           </p>
-          <h1 className="text-white text-3xl font-light mb-3" style={{ letterSpacing: '-0.03em' }}>The Work</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-xl">
+          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Work</h1>
+          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
             Three days of controlled burn. Martinez's crew treated 118.5 of the planned 120 acres — 98.75% completion. Fuel loading dropped from 18.5 to 4.2 tons per acre. The forest floor is clean. Containment is verified.
           </p>
           <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>

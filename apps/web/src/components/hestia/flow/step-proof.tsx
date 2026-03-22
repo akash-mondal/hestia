@@ -91,8 +91,8 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 6 of 8 · Risk Assessment + WRC Minting
           </p>
-          <h1 className="text-white text-3xl font-light mb-3" style={{ letterSpacing: '-0.03em' }}>The Proof</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-xl">
+          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Proof</h1>
+          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
             Sentinel-2 confirms the treatment from orbit. NDVI dropped — vegetation was removed as planned. dNBR shows moderate severity. Zero active FIRMS hotspots. The risk score drops from Extreme to Moderate. Every verified acre becomes a Wildfire Resilience Credit.
           </p>
           <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
@@ -109,7 +109,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           <div className="rounded-xl overflow-hidden animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <Satellite size={14} className="text-blue-400" />
-              <span className="text-white/80 text-[12px] font-medium">Satellite Validation</span>
+              <span className="text-white/85 text-[13px] font-semibold">Satellite Validation</span>
               <span className="text-[9px] font-mono px-1.5 py-0.5 rounded ml-auto" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}>
                 Sentinel-2 L2A
               </span>
@@ -165,7 +165,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           <div className="rounded-xl overflow-hidden animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <Zap size={14} className="text-amber-400" />
-              <span className="text-white/80 text-[12px] font-medium">6-Component Risk Score</span>
+              <span className="text-white/85 text-[13px] font-semibold">6-Component Risk Score</span>
             </div>
             <div className="p-5 space-y-3">
               {RISK_COMPONENTS.map(c => {

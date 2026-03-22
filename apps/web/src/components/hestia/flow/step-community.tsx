@@ -57,8 +57,8 @@ export default function StepCommunity({ state, updateState, goToStep, pollHcs }:
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 2 of 8 · Site Registration
           </p>
-          <h1 className="text-white text-3xl font-light mb-3" style={{ letterSpacing: '-0.03em' }}>The Community</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-xl">
+          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Community</h1>
+          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
             Maria is on the board of the Tahoe Donner HOA. 187 homes sit in the wildland-urban interface. She's registering her community's forest for treatment.
           </p>
           <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>

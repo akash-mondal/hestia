@@ -66,8 +66,8 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 7 of 8 · Insurance Impact
           </p>
-          <h1 className="text-white text-3xl font-light mb-3" style={{ letterSpacing: '-0.03em' }}>The Value</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-xl">
+          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Value</h1>
+          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
             Wildfire resilience isn't just about nature — it's about money. Swiss Re sees the treatment, the satellite proof, and the risk score drop. They offer Maria a premium discount. The forest's reduced risk has a dollar value now.
           </p>
           <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
@@ -82,7 +82,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
         <div className="rounded-xl overflow-hidden mb-6 animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <Shield size={14} className="text-amber-400" />
-            <span className="text-white/80 text-[12px] font-medium">WRC Insurance Discount Tiers</span>
+            <span className="text-white/85 text-[13px] font-semibold">WRC Insurance Discount Tiers</span>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-4 gap-3">
@@ -100,7 +100,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                       boxShadow: isActive ? '0 0 30px rgba(255,215,0,0.08)' : 'none',
                     }}>
                     {isActive && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[8px] font-medium px-2 py-0.5 rounded-full"
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-medium px-2 py-0.5 rounded-full"
                         style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)' }}>
                         Tahoe Benchmark
                       </div>
@@ -123,7 +123,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
         <div className="rounded-xl overflow-hidden mb-6 animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <DollarSign size={14} className="text-emerald-400" />
-            <span className="text-white/80 text-[12px] font-medium">Premium Calculation</span>
+            <span className="text-white/85 text-[13px] font-semibold">Premium Calculation</span>
           </div>
           <div className="p-8 text-center">
             <div className="flex items-center justify-center gap-4 text-xl font-mono">
@@ -173,7 +173,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
         <div className="rounded-xl overflow-hidden mb-8 animate-fade-in stagger-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <TrendingUp size={14} className="text-blue-400" />
-            <span className="text-white/80 text-[12px] font-medium">SEEA Ecosystem Accounting</span>
+            <span className="text-white/85 text-[13px] font-semibold">SEEA Ecosystem Accounting</span>
           </div>
           <div className="p-6">
             <div className="flex items-center gap-3">

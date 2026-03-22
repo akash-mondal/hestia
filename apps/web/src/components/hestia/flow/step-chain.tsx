@@ -146,8 +146,8 @@ export default function StepChain({ state }: StepProps) {
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-4" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 8 of 8 · Trust Chain
           </p>
-          <h1 className="text-white text-4xl font-light mb-4" style={{ letterSpacing: '-0.03em' }}>The Chain</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-lg mx-auto">
+          <h1 className="text-white text-5xl font-extralight mb-4" style={{ letterSpacing: '-0.04em' }}>The Chain</h1>
+          <p className="text-white/45 text-[15px] leading-[1.65] max-w-lg mx-auto">
             Every step you just took is now on Hedera. Seven levels of provenance — from satellite orbit to insurance premium — each one a Verifiable Credential anchored to an immutable topic.
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function StepChain({ state }: StepProps) {
                         <div className="text-white/30 text-[10px] truncate">{level.subtitle}</div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[8px] font-mono px-1.5 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.03)' }}>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.03)' }}>
                           Level {i + 1}
                         </span>
                         {isOpen ? <ChevronUp size={14} className="text-white/20" /> : <ChevronDown size={14} className="text-white/20" />}
@@ -215,7 +215,7 @@ export default function StepChain({ state }: StepProps) {
                         <div className="pt-3 grid grid-cols-2 gap-3">
                           {level.details.map(d => (
                             <div key={d.label}>
-                              <div className="text-[8px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>{d.label}</div>
+                              <div className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.25)' }}>{d.label}</div>
                               <div className="text-[11px] font-mono mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{d.value}</div>
                             </div>
                           ))}

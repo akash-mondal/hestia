@@ -34,10 +34,10 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-4" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 1 of 8 · Satellite Reconnaissance
           </p>
-          <h1 className="text-white text-4xl font-light mb-4" style={{ letterSpacing: '-0.03em' }}>
+          <h1 className="text-white mb-5" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 200, letterSpacing: '-0.04em', lineHeight: 1.05 }}>
             The Landscape
           </h1>
-          <p className="text-white/50 text-sm leading-relaxed">
+          <p className="text-white/50 text-[15px] leading-[1.65]">
             You're looking at the Sierra Nevada from space. Active fire detections from NASA FIRMS pulse across California. This is what a satellite analyst sees every morning before deciding where to focus mitigation efforts.
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
             <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <div className="flex items-center gap-2">
                 <AlertTriangle size={14} className="text-red-400" />
-                <span className="text-white/80 text-[12px] font-medium">NASA FIRMS Active Fire Detection</span>
+                <span className="text-white/85 text-[13px] font-semibold">NASA FIRMS Active Fire Detection</span>
                 <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}>
                   {fires?.source === 'demo_fallback' ? 'DEMO' : fires ? 'LIVE' : 'READY'} · VIIRS SNPP
                 </span>

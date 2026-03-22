@@ -132,8 +132,8 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
           <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 4 of 8 · Treatment Plan
           </p>
-          <h1 className="text-white text-3xl font-light mb-3" style={{ letterSpacing: '-0.03em' }}>The Plan</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-xl">
+          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Plan</h1>
+          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
             CAL FIRE crew lead J. Martinez has assessed the fuel conditions. A prescribed burn is the safest, most effective treatment for Tahoe Donner's mixed conifer stand. The plan includes crew certification, AQMD burn permit, and environmental clearance.
           </p>
           <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
