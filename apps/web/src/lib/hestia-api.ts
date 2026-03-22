@@ -14,46 +14,66 @@ import type {
 
 const tokenCache: Record<string, { accessToken: string; expiresAt: number }> = {};
 
+// Pending token requests to avoid parallel race conditions
+const pendingTokens: Record<string, Promise<string>> = {};
+
 export async function getHestiaToken(role?: HestiaRole): Promise<string> {
   const cacheKey = role || '_admin';
   const cached = tokenCache[cacheKey];
   if (cached && cached.expiresAt > Date.now()) return cached.accessToken;
 
-  const creds = role ? HESTIA_USERS[role] : HESTIA_ADMIN;
+  // Deduplicate concurrent requests for the same role
+  if (pendingTokens[cacheKey]) return pendingTokens[cacheKey];
 
-  const loginRes = await fetch(`${HESTIA_GUARDIAN_URL}/accounts/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: creds.username, password: creds.password }),
-  });
-  if (!loginRes.ok) throw new Error(`Hestia login failed (${creds.username}): ${loginRes.status}`);
-  const { refreshToken } = await loginRes.json();
+  pendingTokens[cacheKey] = (async () => {
+    const creds = role ? HESTIA_USERS[role] : HESTIA_ADMIN;
 
-  const tokenRes = await fetch(`${HESTIA_GUARDIAN_URL}/accounts/access-token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  });
-  if (tokenRes.status !== 200 && tokenRes.status !== 201) throw new Error(`Hestia access-token failed: ${tokenRes.status}`);
-  const { accessToken } = await tokenRes.json();
+    const loginRes = await fetch(`${HESTIA_GUARDIAN_URL}/accounts/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: creds.username, password: creds.password }),
+    });
+    if (!loginRes.ok) throw new Error(`Hestia login failed (${creds.username}): ${loginRes.status}`);
+    const { refreshToken } = await loginRes.json();
 
-  tokenCache[cacheKey] = { accessToken, expiresAt: Date.now() + 25 * 60 * 1000 };
-  return accessToken;
+    const tokenRes = await fetch(`${HESTIA_GUARDIAN_URL}/accounts/access-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (tokenRes.status !== 200 && tokenRes.status !== 201) throw new Error(`Hestia access-token failed: ${tokenRes.status}`);
+    const { accessToken } = await tokenRes.json();
+
+    tokenCache[cacheKey] = { accessToken, expiresAt: Date.now() + 25 * 60 * 1000 };
+    return accessToken;
+  })();
+
+  try {
+    const token = await pendingTokens[cacheKey];
+    return token;
+  } finally {
+    delete pendingTokens[cacheKey];
+  }
 }
 
 // ── Guardian Tag Fetch ──
 
 export async function fetchHestiaTag(tagName: string, role?: HestiaRole): Promise<unknown[]> {
-  const token = await getHestiaToken(role);
-  const res = await fetch(`${HESTIA_GUARDIAN_URL}/policies/${HESTIA_POLICY_ID}/tag/${tagName}/blocks`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    console.error(`Hestia tag ${tagName} fetch failed: ${res.status}`);
+  try {
+    const token = await getHestiaToken(role);
+    const res = await fetch(`${HESTIA_GUARDIAN_URL}/policies/${HESTIA_POLICY_ID}/tag/${tagName}/blocks`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      console.error(`Hestia tag ${tagName} fetch failed: ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data?.data ?? []);
+  } catch (err) {
+    console.error(`Hestia tag ${tagName} error:`, err);
     return [];
   }
-  const data = await res.json();
-  return Array.isArray(data) ? data : (data?.data ?? []);
 }
 
 // ── Guardian Tag Submit (NEW — Zeno never writes) ──
