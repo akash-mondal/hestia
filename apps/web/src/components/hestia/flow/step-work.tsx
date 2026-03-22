@@ -66,7 +66,7 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0C0A09 0%, #1C1917 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0E0905 0%, #1F1208 50%, #0E0905 100%)' }} />
 
       <div className="relative z-10 max-w-4xl mx-auto px-8 py-16">
         {/* Narrative */}

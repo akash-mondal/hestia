@@ -124,12 +124,12 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0C0A09 0%, #1C1917 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #070C09 0%, #0F1F14 50%, #070C09 100%)' }} />
 
       <div className="relative z-10 max-w-4xl mx-auto px-8 py-16">
         {/* Narrative */}
         <div className="mb-10 animate-fade-in">
-          <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
+          <p className="text-emerald-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 4 of 8 · Treatment Plan
           </p>
           <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Plan</h1>

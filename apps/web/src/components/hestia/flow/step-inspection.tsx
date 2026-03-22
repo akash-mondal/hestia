@@ -71,12 +71,12 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0C0A09 0%, #1C1917 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #090A10 0%, #131528 50%, #090A10 100%)' }} />
 
       <div className="relative z-10 max-w-4xl mx-auto px-8 py-16">
         {/* Narrative */}
         <div className="mb-10 animate-fade-in">
-          <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
+          <p className="text-indigo-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 3 of 8 · Verifier Approval
           </p>
           <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Inspection</h1>

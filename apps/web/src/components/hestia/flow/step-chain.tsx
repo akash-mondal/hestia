@@ -138,7 +138,7 @@ export default function StepChain({ state }: StepProps) {
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0C0A09 0%, #1C1917 50%, #0C0A09 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0A0A0C 0%, #14151C 35%, #1A1714 65%, #0A0A0C 100%)' }} />
 
       <div className="relative z-10 max-w-3xl mx-auto px-8 py-16">
         {/* Narrative */}

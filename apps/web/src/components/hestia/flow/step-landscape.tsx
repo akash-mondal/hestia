@@ -23,7 +23,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
       {/* Dark satellite-style background */}
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(135deg, #0C0A09 0%, #1C1917 30%, #292524 60%, #1C1917 100%)',
+        background: 'linear-gradient(135deg, #080C14 0%, #0F1A2E 30%, #162040 50%, #0F1A2E 80%, #080C14 100%)',
       }} />
 
       {/* Content */}
@@ -31,7 +31,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
 
         {/* Narrative intro */}
         <div className="text-center mb-12 max-w-2xl animate-fade-in">
-          <p className="text-orange-400/60 text-[11px] tracking-[0.2em] uppercase mb-4" style={{ fontFamily: 'var(--font-mono)' }}>
+          <p className="text-blue-400/60 text-[11px] tracking-[0.2em] uppercase mb-4" style={{ fontFamily: 'var(--font-mono)' }}>
             Step 1 of 8 · Satellite Reconnaissance
           </p>
           <h1 className="text-white mb-5" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 200, letterSpacing: '-0.04em', lineHeight: 1.05 }}>
