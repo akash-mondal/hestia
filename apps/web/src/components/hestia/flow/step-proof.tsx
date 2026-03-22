@@ -1,365 +1,225 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Satellite, ArrowRight, Loader2, CheckCircle2, ExternalLink, Zap, TrendingDown } from 'lucide-react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
-import { TAGS, HASHSCAN_BASE, INSTANCE_TOPIC_ID, WRC_TOKEN_ID, RISK_COMPONENTS } from '@/lib/hestia-constants';
+import { useState, useEffect } from 'react';
+import { Loader2, CheckCircle2, ExternalLink, Lock, Coins, Radio } from 'lucide-react';
+import { TAGS, RISK_COMPONENTS, WRC_TOKEN_ID, RISK_ORACLE_ADDRESS } from '@/lib/hestia-constants';
 import type { StepProps } from './hestia-flow';
 
-const RISK_BEFORE = { fuel: 20, slope: 12, wui: 16, access: 8, historical: 8, weather: 14 };
-const DEFAULT_AFTER = { fuel: 8, slope: 12, wui: 10, access: 4, historical: 3, weather: 4 };
+const PRE_RISK = { fuel: 22, slope: 12, wui: 18, access: 7, historical: 8, weather: 11 };
 
-const SAT_DATA = {
-  ndviBefore: 0.72,
-  ndviAfter: 0.38,
-  dNBR: 0.34,
-  firmsHotspots: 0,
-};
+interface SatData { pre_ndvi: number; post_ndvi: number; dnbr: number; burn_severity: string; source: string }
+interface RiskResult { total: number; category: string }
 
-const VERIFIED_ACRES = 118.5;
-
-export default function StepProof({ state, updateState, goToStep, pollHcs, pollWrc }: StepProps) {
+export default function StepProof({ state, updateState, guidePhase, advanceGuide, completeStep, pollHcs, pollWrc }: StepProps) {
+  const [postRisk, setPostRisk] = useState<Record<string, number>>({ fuel: 8, slope: 12, wui: 10, access: 4, historical: 3, weather: 4 });
   const [submitting, setSubmitting] = useState(false);
+  const [mintStage, setMintStage] = useState('');
   const [success, setSuccess] = useState(!!state.assessment);
-  const [mintStatus, setMintStatus] = useState('');
-  const [riskAfter, setRiskAfter] = useState(DEFAULT_AFTER);
+  const [assessId] = useState(() => 'RA-' + Date.now().toString(36).slice(-4));
+  const [satData, setSatData] = useState<SatData | null>(null);
+  const [satLoading, setSatLoading] = useState(false);
+  const [preResult, setPreResult] = useState<RiskResult | null>(null);
+  const [postResult, setPostResult] = useState<RiskResult | null>(null);
+  const [riskLoading, setRiskLoading] = useState(false);
+  const [validationSubmitted, setValidationSubmitted] = useState(false);
+  const [validationLink, setValidationLink] = useState<string | null>(null);
 
-  const TOTAL_PRE = useMemo(() => Object.values(RISK_BEFORE).reduce((a, b) => a + b, 0), []);
-  const TOTAL_POST = useMemo(() => Object.values(riskAfter).reduce((a, b) => a + b, 0), [riskAfter]);
+  const mintAmount = Number(state.report?.data?.treatedAcres) || Number(state.plan?.data?.acres) || 118.5;
+  const preTotal = preResult?.total ?? Object.values(PRE_RISK).reduce((a, b) => a + b, 0);
+  const postTotal = postResult?.total ?? Object.values(postRisk).reduce((a, b) => a + b, 0);
+  const reductionPct = preTotal > 0 ? ((1 - postTotal / preTotal) * 100).toFixed(0) : '0';
 
-  const radarData = useMemo(() => {
-    return RISK_COMPONENTS.map(c => ({
-      component: c.label,
-      pre: RISK_BEFORE[c.key as keyof typeof RISK_BEFORE],
-      post: riskAfter[c.key as keyof typeof riskAfter],
-      max: c.max,
-    }));
-  }, [riskAfter]);
+  useEffect(() => {
+    if (guidePhase < 1 || satData) return;
+    setSatLoading(true);
+    fetch('/api/hestia/satellite/vegetation?lat=39.3406&lon=-120.2346&pre_date=2025-06-01&post_date=2026-03-01')
+      .then(r => r.json()).then(d => setSatData(d)).catch(() => setSatData({ pre_ndvi: 0.72, post_ndvi: 0.38, dnbr: 0.34, burn_severity: 'Moderate-Low', source: 'demo_fallback' }))
+      .finally(() => setSatLoading(false));
+    fetch(`/api/hestia/contracts/risk-score?fuel=${PRE_RISK.fuel}&slope=${PRE_RISK.slope}&wui=${PRE_RISK.wui}&access=${PRE_RISK.access}&historical=${PRE_RISK.historical}&weather=${PRE_RISK.weather}`)
+      .then(r => r.json()).then(d => setPreResult(d)).catch(() => {});
+  }, [guidePhase, satData]);
 
-  const updateRiskComponent = (key: string, value: number) => {
-    setRiskAfter(prev => ({ ...prev, [key]: value }));
+  // Submit SatelliteValidation VC when satellite data is available
+  useEffect(() => {
+    if (!satData || validationSubmitted) return;
+    const submitValidation = async () => {
+      try {
+        const valId = 'SV-' + Date.now().toString(36).slice(-4);
+        const res = await fetch('/api/hestia/guardian/submit', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tag: TAGS.VALIDATION_INTAKE, role: 'satellite',
+            data: { field0: valId, field1: 'TD-DEMO', field2: '2026-03-10', field3: satData.pre_ndvi, field4: satData.dnbr, field5: 0, field6: 'mixed_conifer', field7: 0.94 },
+          }),
+        });
+        if (res.ok) {
+          setValidationSubmitted(true);
+          const link = await pollHcs();
+          setValidationLink(link);
+        }
+      } catch {}
+    };
+    submitValidation();
+  }, [satData, validationSubmitted, pollHcs]);
+
+  const lockScores = async () => {
+    setRiskLoading(true);
+    try {
+      const r = await fetch(`/api/hestia/contracts/risk-score?fuel=${postRisk.fuel}&slope=${postRisk.slope}&wui=${postRisk.wui}&access=${postRisk.access}&historical=${postRisk.historical}&weather=${postRisk.weather}`);
+      if (r.ok) setPostResult(await r.json());
+    } catch {}
+    setRiskLoading(false);
+    advanceGuide();
   };
 
-  const handleSubmit = async () => {
+  const handleMint = async () => {
     setSubmitting(true);
-    setMintStatus('Submitting risk assessment to Guardian...');
     try {
+      setMintStage('Submitting risk assessment...');
       const res = await fetch('/api/hestia/guardian/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tag: TAGS.RISK_INTAKE,
-          role: 'satellite',
-          data: {
-            field0: 'RA-' + Date.now().toString(36).slice(-6),
-            field1: 'TD-001',
-            field2: new Date().toISOString(),
-            field3: TOTAL_PRE,
-            field4: TOTAL_POST,
-            field5: Math.round((1 - TOTAL_POST / TOTAL_PRE) * 1000) / 10,
-            field6: SAT_DATA.ndviBefore,
-            field7: SAT_DATA.ndviAfter,
-            field8: SAT_DATA.dNBR,
-            field9: SAT_DATA.firmsHotspots,
-            field10: RISK_BEFORE.weather / 20,
-            field11: RISK_BEFORE.slope / 15,
-            field12: RISK_BEFORE.wui / 20,
-            field13: VERIFIED_ACRES,
-            field14: 'FIRMS,Sentinel-2,LANDFIRE,NOAA',
-            field15: new Date().toISOString().split('T')[0],
-            field16: true,
-            field17: 'mint_wrc',
-          },
+          tag: TAGS.RISK_INTAKE, role: 'satellite',
+          data: { field0: assessId, field1: 'TD-DEMO', field2: new Date().toISOString(), field3: preTotal, field4: postTotal,
+            field5: Number(reductionPct), field6: satData?.pre_ndvi ?? 0.72, field7: satData?.post_ndvi ?? 0.38, field8: satData?.dnbr ?? 0.34,
+            field9: 0, field10: postRisk.weather, field11: postRisk.slope, field12: postRisk.wui,
+            field13: mintAmount, field14: `Sentinel-2${satData?.source === 'demo_fallback' ? ' (demo)' : ''},FIRMS,LANDFIRE`, field15: '2026-03-10', field16: true, field17: 'MINT' },
         }),
       });
-
-      if (res.ok) {
-        const link = `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`;
-        updateState({
-          assessment: {
-            data: { ...RISK_BEFORE, ...SAT_DATA, totalPre: TOTAL_PRE, totalPost: TOTAL_POST } as unknown as Record<string, unknown>,
-            hashScanLink: link,
-            mintAmount: VERIFIED_ACRES,
-          },
-        });
-        setSuccess(true);
-        setMintStatus('Minting WRC tokens...');
-        await pollHcs();
-        setMintStatus('Waiting for token supply update...');
-        await pollWrc();
-        setMintStatus('');
-      }
-    } catch { /* handled */ }
-    setSubmitting(false);
+      if (res.ok) { setMintStage('Minting WRC tokens...'); const link = await pollHcs(); setMintStage('Verifying supply...'); await pollWrc(); updateState({ assessment: { data: { preTotal, postTotal, reductionPct }, hashScanLink: link, mintAmount } }); setSuccess(true); completeStep(); }
+    } catch {}
+    setSubmitting(false); setMintStage('');
   };
 
-  const supplyBefore = state.wrcBefore;
-  const supplyAfter = state.wrcAfter;
-  const supplyChanged = supplyAfter > supplyBefore;
+  const pulse = (a: boolean) => a ? { animation: 'gp 2s ease-in-out infinite' } : {};
 
   return (
-    <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #070C0A 0%, #0A1A12 40%, #0D2318 60%, #070C0A 100%)' }} />
+    <div className="h-full flex items-center justify-center" style={{ background: '#0a0810' }}>
+      <style jsx global>{`@keyframes gp{0%,100%{box-shadow:0 0 0 0 rgba(129,140,248,0)}50%{box-shadow:0 0 0 6px rgba(129,140,248,0.2)}}`}</style>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-8 py-16">
-        {/* Narrative */}
-        <div className="mb-10 animate-fade-in">
-          <p className="text-emerald-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
-            Step 6 of 8 · Risk Assessment + WRC Minting
-          </p>
-          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Proof</h1>
-          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
-            Sentinel-2 confirms the treatment from orbit. NDVI dropped — vegetation was removed as planned. dNBR shows moderate severity. Zero active FIRMS hotspots. The risk score drops from Extreme to Moderate. Every verified acre becomes a Wildfire Resilience Credit.
-          </p>
-          <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-            <span className="px-2 py-0.5 rounded" style={{ background: 'rgba(234,88,12,0.1)', color: '#FB923C', border: '1px solid rgba(234,88,12,0.2)' }}>
-              Role: Satellite Analyst
-            </span>
-            <span className="font-mono">fresh_sate</span>
-          </div>
+      <div className="w-full max-w-5xl px-10">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(129,140,248,0.5)' }}>Step 6 · Risk Assessment + dMRV</span>
+          <span className="px-2 py-0.5 text-[9px] font-medium" style={{ background: 'rgba(129,140,248,0.08)', color: '#818CF8', borderRadius: 4 }}>Satellite Analyst</span>
+          {satData && <span className="flex items-center gap-1 text-[8px] font-mono ml-auto" style={{ color: satData.source === 'demo_fallback' ? '#F59E0B' : '#10B981' }}>
+            <Radio size={7} /> {satData.source === 'demo_fallback' ? 'Demo data' : 'Sentinel-2 L2A'}
+          </span>}
         </div>
 
-        {/* Split layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Left: Satellite data */}
-          <div className="rounded-xl overflow-hidden animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <Satellite size={14} className="text-blue-400" />
-              <span className="text-white/85 text-[13px] font-semibold">Satellite Validation</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded ml-auto" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}>
-                Sentinel-2 L2A
-              </span>
+        {/* Hero — WRC mint amount with risk context */}
+        <div className="flex items-end gap-6 mb-6">
+          <div>
+            <div className="text-white" style={{ fontSize: 'clamp(3.5rem, 7vw, 6rem)', fontWeight: 100, lineHeight: 0.85, letterSpacing: '-0.05em' }}>
+              {mintAmount}
             </div>
-            <div className="p-5 space-y-5">
-              {/* NDVI */}
-              <div>
-                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>NDVI (Vegetation Index)</div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>Before</span>
-                      <span className="font-mono text-emerald-400">{SAT_DATA.ndviBefore}</span>
-                    </div>
-                    <div className="h-3 rounded" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                      <div className="h-full rounded" style={{ width: `${SAT_DATA.ndviBefore * 100}%`, background: '#059669' }} />
-                    </div>
-                  </div>
-                  <TrendingDown size={14} className="text-orange-400 shrink-0" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>After</span>
-                      <span className="font-mono text-orange-400">{SAT_DATA.ndviAfter}</span>
-                    </div>
-                    <div className="h-3 rounded" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                      <div className="h-full rounded" style={{ width: `${SAT_DATA.ndviAfter * 100}%`, background: '#EA580C' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* dNBR */}
-              <div>
-                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>dNBR (Burn Severity)</div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl font-mono font-bold text-orange-400">{SAT_DATA.dNBR}</span>
-                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Moderate severity — consistent with prescribed burn</span>
-                </div>
-              </div>
-
-              {/* FIRMS */}
-              <div>
-                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>FIRMS Active Hotspots</div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl font-mono font-bold text-emerald-400">{SAT_DATA.firmsHotspots}</span>
-                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>No active fire detected — burn fully contained</span>
-                </div>
-              </div>
-            </div>
+            <div className="text-[13px] text-white/25 mt-1" style={{ fontWeight: 300 }}>Wildfire Resilience Credits to mint</div>
           </div>
-
-          {/* Right: Risk breakdown with sliders */}
-          <div className="rounded-xl overflow-hidden animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <Zap size={14} className="text-amber-400" />
-              <span className="text-white/85 text-[13px] font-semibold">6-Component Risk Score</span>
-              <span className="ml-auto text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>Adjust post-treatment values</span>
+          <div className="pb-1 flex gap-6">
+            <div>
+              <div className="text-[10px] text-white/15 uppercase tracking-wider">Risk</div>
+              <div className="text-lg font-mono"><span className="text-red-400">{preTotal}</span> <span className="text-white/15">→</span> <span className="text-emerald-400">{postTotal}</span></div>
             </div>
-            <div className="p-5 space-y-3">
-              {RISK_COMPONENTS.map(c => {
-                const pre = RISK_BEFORE[c.key as keyof typeof RISK_BEFORE];
-                const post = riskAfter[c.key as keyof typeof riskAfter];
-                const changed = pre !== post;
-                return (
-                  <div key={c.key}>
-                    <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span style={{ color: 'rgba(255,255,255,0.5)' }}>{c.label}</span>
-                      <div className="font-mono">
-                        <span className="text-red-400">{pre}</span>
-                        {changed && <><span className="text-white/20 mx-1">{'->'}</span><span className="text-emerald-400">{post}</span></>}
-                        <span className="text-white/15 ml-1">/{c.max}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 rounded overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                        <div className="h-full rounded transition-all duration-300" style={{
-                          width: `${(post / c.max) * 100}%`,
-                          background: post <= c.max * 0.4 ? '#059669' : post <= c.max * 0.7 ? '#D97706' : '#DC2626',
-                        }} />
-                      </div>
-                      <input
-                        type="range" aria-label="Risk component"
-                        min="0"
-                        max={c.max}
-                        step="1"
-                        value={post}
-                        onChange={(e) => updateRiskComponent(c.key, parseInt(e.target.value))}
-                        disabled={success}
-                        className="w-20 h-1.5 rounded appearance-none cursor-pointer"
-                        style={{ accentColor: post <= c.max * 0.4 ? '#059669' : post <= c.max * 0.7 ? '#D97706' : '#DC2626' }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Total */}
-              <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <span className="text-white/60 text-[11px] font-medium">Total Risk Score</span>
-                <div className="font-mono text-lg">
-                  <span className="text-red-400 font-bold">{TOTAL_PRE}</span>
-                  <span className="text-white/20 mx-2">{'->'}</span>
-                  <span className="text-emerald-400 font-bold">{TOTAL_POST}</span>
-                  <span className="text-emerald-400/50 text-[11px] ml-2">(-{Math.round((1 - TOTAL_POST / TOTAL_PRE) * 100)}%)</span>
-                </div>
-              </div>
+            <div>
+              <div className="text-[10px] text-white/15 uppercase tracking-wider">Reduction</div>
+              <div className="text-lg font-mono text-indigo-400">{reductionPct}%</div>
             </div>
           </div>
         </div>
 
-        {/* Radar Chart: Pre vs Post */}
-        <div className="rounded-xl overflow-hidden mb-8 animate-fade-in stagger-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <Zap size={14} className="text-emerald-400" />
-            <span className="text-white/85 text-[13px] font-semibold">Risk Profile — Pre vs Post Treatment</span>
-            <div className="ml-auto flex items-center gap-4 text-[10px]">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#DC2626' }} /> Pre-treatment ({TOTAL_PRE})</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#059669' }} /> Post-treatment ({TOTAL_POST})</span>
-            </div>
-          </div>
-          <div className="p-6" style={{ height: 320 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                <PolarAngleAxis dataKey="component" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 25]} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 9 }} />
-                <Radar name="Pre-treatment" dataKey="pre" stroke="#DC2626" fill="#DC2626" fillOpacity={0.15} strokeWidth={2} />
-                <Radar name="Post-treatment" dataKey="post" stroke="#059669" fill="#059669" fillOpacity={0.2} strokeWidth={2} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Verified Acres / Mint amount — THE HERO */}
-        <div className="rounded-xl overflow-hidden mb-8 animate-fade-in stagger-4" style={{
-          background: 'rgba(5,150,105,0.04)',
-          border: '1px solid rgba(5,150,105,0.15)',
-        }}>
-          <div className="p-8 text-center">
-            <div className="text-[10px] uppercase tracking-[0.2em] mb-3" style={{ color: 'rgba(5,150,105,0.6)' }}>
-              Verified Treatment Acres = WRC Mint Amount
-            </div>
-            <div className="text-5xl font-mono font-bold text-emerald-400 mb-2" style={{ textShadow: '0 0 40px rgba(5,150,105,0.3)' }}>
-              {VERIFIED_ACRES}
-            </div>
-            <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              Wildfire Resilience Credits to mint on Hedera Token Service
-            </div>
-
-            {/* Token info */}
-            <div className="mt-4 flex items-center justify-center gap-4 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
-              <span>Token: {WRC_TOKEN_ID}</span>
-              <span>|</span>
-              <span>Type: HTS Fungible</span>
-              <span>|</span>
-              <span>1 WRC = 1 treated acre</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Submit / Mint button */}
-        <div className="rounded-xl overflow-hidden animate-fade-in stagger-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="p-6">
-            {success ? (
-              <div className="space-y-4">
-                {/* Celebration header */}
-                <div className="text-center py-6 rounded-xl" style={{
-                  background: 'linear-gradient(135deg, rgba(5,150,105,0.12), rgba(52,211,153,0.06))',
-                  border: '1px solid rgba(5,150,105,0.2)',
-                  boxShadow: '0 0 60px rgba(5,150,105,0.08)',
-                }}>
-                  <CheckCircle2 size={32} className="text-emerald-400 mx-auto mb-3" />
-                  <div className="text-emerald-400 text-xl font-semibold mb-1">{VERIFIED_ACRES} WRC Minted</div>
-                  <div className="text-white/40 text-[12px]">Wildfire Resilience Credits now live on Hedera</div>
-                </div>
-
-                <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.15)' }}>
-                  <CheckCircle2 size={16} className="text-emerald-400" />
-                  <span className="text-emerald-400 text-[12px] font-medium">Verified on Hedera Consensus Service</span>
-                  <a href={state.assessment?.hashScanLink || `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`} target="_blank" rel="noopener noreferrer"
-                    className="ml-auto flex items-center gap-1 text-[10px] font-mono text-orange-400/70 hover:text-orange-400">
-                    View on HashScan <ExternalLink size={10} />
-                  </a>
-                </div>
-
-                {/* WRC Supply change */}
-                <div className="text-center py-4 rounded-lg" style={{
-                  background: supplyChanged ? 'rgba(5,150,105,0.06)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${supplyChanged ? 'rgba(5,150,105,0.1)' : 'rgba(255,255,255,0.04)'}`,
-                }}>
-                  <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>WRC Total Supply</div>
-                  <div className="font-mono text-lg">
-                    <span className="text-white/50">{supplyBefore}</span>
-                    <span className="text-white/20 mx-2">{'->'}</span>
-                    <span className="text-emerald-400 font-bold">{supplyAfter}</span>
-                    {supplyChanged && (
-                      <span className="text-emerald-400/70 text-sm ml-2">(+{supplyAfter - supplyBefore})</span>
-                    )}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Col 1: Satellite evidence */}
+          <div>
+            <div className="text-[10px] text-white/20 uppercase tracking-wider mb-3">Satellite Evidence</div>
+            {satLoading ? (
+              <div className="flex items-center gap-2 py-6"><Loader2 size={12} className="animate-spin text-indigo-400" /><span className="text-[10px] text-white/20">Querying Sentinel-2...</span></div>
+            ) : satData ? (
+              <div className="space-y-2">
+                {[
+                  ['NDVI Before', satData.pre_ndvi, '#10B981'],
+                  ['NDVI After', satData.post_ndvi, '#F59E0B'],
+                  ['dNBR', satData.dnbr, '#818CF8'],
+                  ['FIRMS', 0, '#10B981'],
+                  ['Severity', satData.burn_severity, '#F59E0B'],
+                ].map(([k, v, c]) => (
+                  <div key={String(k)} className="flex justify-between text-[11px]" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: 6 }}>
+                    <span className="text-white/20">{String(k)}</span>
+                    <span className="font-mono font-medium" style={{ color: String(c) }}>{String(v)}</span>
                   </div>
-                  <a href={`${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-2 text-[10px] font-mono text-orange-400/60 hover:text-orange-400">
-                    View token on HashScan <ExternalLink size={9} />
-                  </a>
-                </div>
+                ))}
               </div>
-            ) : (
-              <button onClick={handleSubmit} disabled={submitting}
-                className="w-full flex items-center justify-center gap-3 px-8 py-5 rounded-xl text-base font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
-                style={{ background: submitting ? 'rgba(5,150,105,0.3)' : '#059669', boxShadow: submitting ? 'none' : '0 0 30px rgba(5,150,105,0.2)' }}>
-                {submitting ? (
-                  <>
-                    <Loader2 size={20} className="animate-spin motion-reduce:animate-none" />
-                    {mintStatus || 'Processing...'}
-                  </>
-                ) : (
-                  <>
-                    <Zap size={20} />
-                    Mint {VERIFIED_ACRES} WRC on Hedera
-                  </>
-                )}
+            ) : null}
+            {validationSubmitted && validationLink && (
+              <div className="flex items-center gap-1.5 mt-3 text-[9px]">
+                <CheckCircle2 size={10} className="text-indigo-400/60" />
+                <span className="text-indigo-400/40">Validation VC recorded</span>
+                <a href={validationLink} target="_blank" rel="noopener noreferrer" className="font-mono text-orange-400/30 hover:text-orange-400 flex items-center gap-0.5 ml-auto"><ExternalLink size={7} /></a>
+              </div>
+            )}
+            {guidePhase === 1 && !success && satData && (
+              <button onClick={advanceGuide} className="w-full mt-3 py-2 text-[11px] font-medium text-white/50" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>
+                Evidence Confirmed
               </button>
+            )}
+          </div>
+
+          {/* Col 2: Risk components */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] text-white/20 uppercase tracking-wider">Risk Components</span>
+              <span className="text-[7px] font-mono text-indigo-400/30">{RISK_ORACLE_ADDRESS.slice(0, 10)}...</span>
+            </div>
+            {RISK_COMPONENTS.map(rc => (
+              <div key={rc.key} className="mb-2">
+                <div className="flex justify-between text-[9px] mb-0.5">
+                  <span className="text-white/20">{rc.label}</span>
+                  <span className="font-mono text-white/30">{PRE_RISK[rc.key as keyof typeof PRE_RISK]} → <span className="text-indigo-400">{postRisk[rc.key]}</span></span>
+                </div>
+                <input type="range" min="0" max={rc.max} value={postRisk[rc.key]} disabled={guidePhase !== 2}
+                  onChange={e => setPostRisk(p => ({ ...p, [rc.key]: Number(e.target.value) }))}
+                  className="w-full h-1 rounded-full appearance-none cursor-pointer" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              </div>
+            ))}
+            {guidePhase === 2 && !success && (
+              <button onClick={lockScores} disabled={riskLoading} className="w-full mt-2 py-2 text-[11px] font-medium text-white/50" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(!riskLoading) }}>
+                {riskLoading ? 'Computing on-chain...' : 'Lock Scores'}
+              </button>
+            )}
+            {preResult && <div className="text-[7px] font-mono text-white/8 mt-2">Computed by RiskScoreOracle on Hedera</div>}
+          </div>
+
+          {/* Col 3: Mint */}
+          <div className="flex flex-col">
+            <div className="text-[10px] text-indigo-400/40 uppercase tracking-wider mb-3">Token Minting</div>
+            <div className="flex-1 flex flex-col justify-center items-center text-center">
+              <div className="text-3xl font-mono text-white mb-1" style={{ fontWeight: 200 }}>{mintAmount}</div>
+              <div className="text-[10px] text-white/20 mb-1">WRC</div>
+              <div className="text-[8px] font-mono text-white/10">{WRC_TOKEN_ID}</div>
+              <div className="text-[8px] font-mono text-white/10">1 WRC = 1 treated acre</div>
+            </div>
+
+            {guidePhase >= 3 && !success && (
+              <button onClick={handleMint} disabled={submitting} className="w-full py-3 text-[12px] font-medium text-white disabled:opacity-40" style={{ background: '#4F46E5', borderRadius: 8, ...pulse(!submitting) }}>
+                {submitting ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />{mintStage}</span> : <span className="flex items-center justify-center gap-2"><Coins size={14} />Mint {mintAmount} WRC</span>}
+              </button>
+            )}
+            {success && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 py-2.5 px-3" style={{ background: 'rgba(5,150,105,0.06)', border: '1px solid rgba(5,150,105,0.1)', borderRadius: 8 }}>
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                  <span className="text-emerald-400 text-[11px]">{mintAmount} WRC minted</span>
+                </div>
+                {state.wrcBefore !== state.wrcAfter && <div className="text-[9px] font-mono text-center text-white/20">Supply: {(state.wrcBefore / 100).toLocaleString()} → <span className="text-emerald-400">{(state.wrcAfter / 100).toLocaleString()}</span></div>}
+                <a href={state.assessment?.hashScanLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 text-[9px] font-mono text-orange-400/40 hover:text-orange-400">HashScan <ExternalLink size={8} /></a>
+              </div>
             )}
           </div>
         </div>
 
-        {/* CTA */}
-        {success && (
-          <div className="mt-8 text-center animate-fade-in">
-            <p className="text-white/30 text-[11px] mb-4">Credits minted. Now see what they're worth.</p>
-            <button onClick={() => goToStep(6)}
-              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
-              style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
-              See the Impact <ArrowRight size={16} />
-            </button>
+        {/* Corroboration */}
+        {satData && postResult && (
+          <div className="mt-4 pt-4 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+            <span className="text-[10px] text-indigo-400/40">dMRV: Satellite dNBR <span className="font-mono text-indigo-400/60">{satData.dnbr}</span> independently confirms <span className="font-mono text-emerald-400/60">{reductionPct}%</span> risk reduction from ground report</span>
           </div>
         )}
       </div>

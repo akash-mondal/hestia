@@ -1,426 +1,178 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Flame, TreePine, Shovel, ArrowRight, Loader2, CheckCircle2, ExternalLink } from 'lucide-react';
-import { TAGS, HASHSCAN_BASE, INSTANCE_TOPIC_ID } from '@/lib/hestia-constants';
-import type { StepProps } from './hestia-flow';
+import { useState, useEffect, useRef } from 'react';
+import { Flame, TreePine, Shovel, Loader2, CheckCircle2, ExternalLink, Shield } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { TAGS } from '@/lib/hestia-constants';
+import type { StepProps } from './hestia-flow';
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
 
-const TREATMENT_TYPES = [
-  { id: 'prescribed_burn', label: 'Prescribed Burn', icon: Flame, desc: 'Controlled fire to reduce fuel load', color: '#EA580C', fill: 'rgba(239,68,68,0.3)' },
-  { id: 'mechanical_thin', label: 'Mechanical Thinning', icon: TreePine, desc: 'Selective removal of small-diameter trees', color: '#D97706', fill: 'rgba(5,150,105,0.3)' },
-  { id: 'defensible_space', label: 'Defensible Space', icon: Shovel, desc: 'Clear vegetation around structures', color: '#059669', fill: 'rgba(59,130,246,0.3)' },
-  { id: 'fuel_break', label: 'Fuel Break', icon: ArrowRight, desc: 'Strategic gaps in vegetation continuity', color: '#2563EB', fill: 'rgba(217,119,6,0.3)' },
-] as const;
+const TYPES = [
+  { id: 'rx_burn', name: 'Prescribed Burn', icon: Flame, color: '#EF4444', reduction: '65-85%' },
+  { id: 'mechanical', name: 'Mechanical Thinning', icon: TreePine, color: '#10B981', reduction: '45-70%' },
+  { id: 'defensible', name: 'Defensible Space', icon: Shield, color: '#3B82F6', reduction: '30-50%' },
+  { id: 'fuelbreak', name: 'Fuel Break', icon: Shovel, color: '#F59E0B', reduction: '80-95%' },
+];
 
-type TreatmentTypeId = typeof TREATMENT_TYPES[number]['id'];
+const SITE_BOUNDARY: [number, number][] = [
+  [-120.268, 39.358], [-120.256, 39.362], [-120.240, 39.360], [-120.225, 39.355],
+  [-120.212, 39.348], [-120.208, 39.338], [-120.210, 39.326], [-120.218, 39.320],
+  [-120.232, 39.318], [-120.248, 39.320], [-120.260, 39.328], [-120.267, 39.340], [-120.268, 39.358],
+];
 
-function calculatePolygonAcres(coords: [number, number][]): number {
-  if (coords.length < 3) return 0;
-  const latMid = coords.reduce((s, c) => s + c[1], 0) / coords.length;
-  const cosLat = Math.cos((latMid * Math.PI) / 180);
-  const metersPerDegLat = 111320;
-  const metersPerDegLon = 111320 * cosLat;
-  let area = 0;
-  for (let i = 0; i < coords.length; i++) {
-    const j = (i + 1) % coords.length;
-    const xi = coords[i][0] * metersPerDegLon;
-    const yi = coords[i][1] * metersPerDegLat;
-    const xj = coords[j][0] * metersPerDegLon;
-    const yj = coords[j][1] * metersPerDegLat;
-    area += xi * yj - xj * yi;
-  }
-  area = Math.abs(area) * 0.5;
-  return area * 0.000247105;
-}
-
-export default function StepPlan({ state, updateState, goToStep, pollHcs }: StepProps) {
-  const [selected, setSelected] = useState<TreatmentTypeId>('prescribed_burn');
+export default function StepPlan({ state, updateState, guidePhase, advanceGuide, completeStep, pollHcs }: StepProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapObjRef = useRef<mapboxgl.Map | null>(null);
+  const [selectedType, setSelectedType] = useState('rx_burn');
+  const [points, setPoints] = useState<[number, number][]>([]);
+  const [closed, setClosed] = useState(false);
+  const [acres, setAcres] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const [submitted, setSubmitted] = useState(!!state.plan);
-  const [approved, setApproved] = useState(!!state.planApproval);
-  const [statusText, setStatusText] = useState('');
-  const [polygonCoords, setPolygonCoords] = useState<[number, number][]>([]);
-  const [polygonClosed, setPolygonClosed] = useState(false);
-  const [calculatedAcres, setCalculatedAcres] = useState(0);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const [success, setSuccess] = useState(!!state.planApproval);
+  const [planId] = useState(() => 'PL-' + Date.now().toString(36).slice(-4));
 
-  const siteLat = Number(state.site?.data?.lat || 39.3406);
-  const siteLon = Number(state.site?.data?.lon || -120.2346);
-
-  const planId = 'TP-' + Date.now().toString(36).slice(-4);
-
-  const form = {
-    planId,
-    siteId: 'TD-001',
-    treatmentType: selected,
-    plannedAcres: calculatedAcres > 0 ? Math.round(calculatedAcres * 10) / 10 : 120,
-    fuelLoadPre: 18.5,
-    crewCert: 'CALFIRE-RX-2024-0847',
-    burnPermit: 'AQMD-BP-2026-0312',
-    envClearance: true,
-  };
-
-  const currentFill = TREATMENT_TYPES.find(t => t.id === selected)?.fill || 'rgba(239,68,68,0.3)';
-  const currentColor = TREATMENT_TYPES.find(t => t.id === selected)?.color || '#EA580C';
-
-  // Initialize map
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
-      center: [siteLon, siteLat],
-      zoom: 14,
-      attributionControl: false,
-    });
-
+    if (!mapRef.current || mapObjRef.current) return;
+    const map = new mapboxgl.Map({ container: mapRef.current, style: 'mapbox://styles/mapbox/satellite-streets-v12', center: [-120.2346, 39.3406], zoom: 13, pitch: 35, interactive: true, fadeDuration: 0 });
+    map.on('style.load', () => { try { for (const l of map.getStyle().layers) { if (l.type === 'symbol') map.setLayoutProperty(l.id, 'visibility', 'none'); } } catch {} });
     map.on('load', () => {
-      map.addSource('polygon', {
-        type: 'geojson',
-        data: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[]] }, properties: {} },
-      });
-      map.addLayer({
-        id: 'polygon-fill',
-        type: 'fill',
-        source: 'polygon',
-        paint: { 'fill-color': currentFill, 'fill-opacity': 0.5 },
-      });
-      map.addLayer({
-        id: 'polygon-outline',
-        type: 'line',
-        source: 'polygon',
-        paint: { 'line-color': currentColor, 'line-width': 2, 'line-dasharray': [2, 1] },
-      });
-      // Points source for vertices
-      map.addSource('points', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-      map.addLayer({
-        id: 'point-circles',
-        type: 'circle',
-        source: 'points',
-        paint: { 'circle-radius': 5, 'circle-color': '#ffffff', 'circle-stroke-color': currentColor, 'circle-stroke-width': 2 },
-      });
+      map.addSource('mapbox-dem', { type: 'raster-dem', url: 'mapbox://mapbox.mapbox-terrain-dem-v1', tileSize: 512 });
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.2 });
+      map.addSource('site-ref', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [SITE_BOUNDARY] } } });
+      map.addLayer({ id: 'ref-line', type: 'line', source: 'site-ref', paint: { 'line-color': '#FB923C', 'line-width': 1, 'line-opacity': 0.2, 'line-dasharray': [6, 4] } });
+      map.addSource('polygon', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      map.addLayer({ id: 'poly-fill', type: 'fill', source: 'polygon', paint: { 'fill-color': '#F59E0B', 'fill-opacity': 0.18 } });
+      map.addLayer({ id: 'poly-line', type: 'line', source: 'polygon', paint: { 'line-color': '#F59E0B', 'line-width': 2.5 } });
+      map.addSource('pts', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      map.addLayer({ id: 'pts-c', type: 'circle', source: 'pts', paint: { 'circle-radius': 4, 'circle-color': '#F59E0B', 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' } });
     });
-
-    mapRef.current = map;
-    return () => { map.remove(); mapRef.current = null; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteLat, siteLon]);
-
-  // Map click handler
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const handleClick = (e: mapboxgl.MapMouseEvent) => {
-      if (polygonClosed) return;
-      const coord: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      setPolygonCoords(prev => [...prev, coord]);
-    };
-
-    const handleDblClick = (e: mapboxgl.MapMouseEvent) => {
-      e.preventDefault();
-      setPolygonClosed(true);
-    };
-
-    map.on('click', handleClick);
-    map.on('dblclick', handleDblClick);
-    return () => {
-      map.off('click', handleClick);
-      map.off('dblclick', handleDblClick);
-    };
-  }, [polygonClosed]);
-
-  // Update polygon on map when coords change
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
-
-    const source = map.getSource('polygon') as mapboxgl.GeoJSONSource | undefined;
-    if (source && polygonCoords.length >= 3) {
-      const ring = [...polygonCoords, polygonCoords[0]];
-      source.setData({
-        type: 'Feature',
-        geometry: { type: 'Polygon', coordinates: [ring] },
-        properties: {},
-      });
-    } else if (source) {
-      source.setData({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [[]] }, properties: {} });
-    }
-
-    const pointSource = map.getSource('points') as mapboxgl.GeoJSONSource | undefined;
-    if (pointSource) {
-      pointSource.setData({
-        type: 'FeatureCollection',
-        features: polygonCoords.map(c => ({
-          type: 'Feature' as const,
-          geometry: { type: 'Point' as const, coordinates: c },
-          properties: {},
-        })),
-      });
-    }
-
-    const acres = calculatePolygonAcres(polygonCoords);
-    setCalculatedAcres(acres);
-  }, [polygonCoords]);
-
-  // Update polygon fill color when treatment type changes
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
-    if (map.getLayer('polygon-fill')) {
-      map.setPaintProperty('polygon-fill', 'fill-color', currentFill);
-    }
-    if (map.getLayer('polygon-outline')) {
-      map.setPaintProperty('polygon-outline', 'line-color', currentColor);
-    }
-    if (map.getLayer('point-circles')) {
-      map.setPaintProperty('point-circles', 'circle-stroke-color', currentColor);
-    }
-  }, [currentFill, currentColor]);
-
-  const resetPolygon = useCallback(() => {
-    setPolygonCoords([]);
-    setPolygonClosed(false);
-    setCalculatedAcres(0);
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
+    mapObjRef.current = map;
+    return () => { map.remove(); mapObjRef.current = null; };
   }, []);
+
+  useEffect(() => {
+    const map = mapObjRef.current;
+    if (!map || guidePhase !== 2 || closed) return;
+    const handler = (e: mapboxgl.MapMouseEvent) => {
+      setPoints(prev => {
+        const next = [...prev, [e.lngLat.lng, e.lngLat.lat] as [number, number]];
+        (map.getSource('pts') as mapboxgl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: next.map(p => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'Point' as const, coordinates: p } })) });
+        if (next.length >= 3) (map.getSource('polygon') as mapboxgl.GeoJSONSource)?.setData({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...next, next[0]]] } } as GeoJSON.Feature);
+        return next;
+      });
+    };
+    const dbl = () => {
+      if (points.length >= 3) {
+        setClosed(true);
+        const pts = [...points, points[0]];
+        let area = 0;
+        for (let i = 0; i < pts.length - 1; i++) area += pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1];
+        area = Math.abs(area) / 2;
+        setAcres(Math.round(area * 111.32 * 111.32 * Math.cos(39.34 * Math.PI / 180) * 247.105));
+        advanceGuide();
+      }
+    };
+    map.on('click', handler);
+    map.on('dblclick', dbl);
+    return () => { map.off('click', handler); map.off('dblclick', dbl); };
+  }, [guidePhase, closed, points, advanceGuide]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    setStatusText('Submitting treatment plan to Guardian...');
     try {
-      const res = await fetch('/api/hestia/guardian/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tag: TAGS.PLAN_FORM,
-          role: 'operator',
-          data: {
-            field0: form.planId,
-            field1: form.siteId,
-            field2: form.treatmentType,
-            field3: form.plannedAcres,
-            field4: form.fuelLoadPre,
-            field5: form.crewCert,
-            field6: form.burnPermit,
-            field7: form.envClearance,
-          },
-        }),
-      });
-
-      if (res.ok) {
-        const link = `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`;
-        updateState({ plan: { data: form as unknown as Record<string, unknown>, hashScanLink: link } });
-        setSubmitted(true);
-        await pollHcs();
-
-        // Auto-approve the plan
-        setStatusText('Plan submitted. Fetching for approval...');
-        await autoApprovePlan();
+      const r = await fetch('/api/hestia/guardian/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tag: TAGS.PLAN_FORM, role: 'operator', data: { field0: planId, field1: 'TD-DEMO', field2: selectedType, field3: acres || 120, field4: '2026-03-15', field5: '2026-03-18', field6: 18.5, field7: 'CAL FIRE RX-2', field8: 'BP-2026-0341', field9: 'EA-2025-1287' } }) });
+      if (r.ok) {
+        const planLink = await pollHcs();
+        updateState({ plan: { data: { planId, type: selectedType, acres: acres || 120 }, hashScanLink: planLink } });
+        try {
+          const plans = await fetch('/api/hestia/guardian/plans').then(r => r.json());
+          const docs = Array.isArray(plans) ? plans : plans.data || [];
+          if (docs.length > 0) { await fetch('/api/hestia/guardian/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buttonTag: 'approve_plan_btn', documentId: docs[0]._id || docs[0].id }) }); const al = await pollHcs(); updateState({ planApproval: { hashScanLink: al } }); }
+        } catch {}
+        setSuccess(true); completeStep();
       }
-    } catch { /* handled */ }
+    } catch {}
     setSubmitting(false);
   };
 
-  const autoApprovePlan = async () => {
-    setApproving(true);
-    setStatusText('Fetching pending plans...');
-
-    // Wait a moment for Guardian to process
-    await new Promise(r => setTimeout(r, 3000));
-
-    try {
-      const res = await fetch('/api/hestia/guardian/plans');
-      if (res.ok) {
-        const plans = await res.json();
-        const pendingPlans = Array.isArray(plans) ? plans : [];
-
-        if (pendingPlans.length > 0) {
-          const docId = pendingPlans[0]._id;
-          setStatusText('Approving treatment plan...');
-
-          const approveRes = await fetch('/api/hestia/guardian/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              buttonTag: TAGS.APPROVE_PLAN,
-              documentId: docId,
-              dialogResult: 'Approved — burn plan meets CALFIRE RX standards',
-            }),
-          });
-
-          if (approveRes.ok) {
-            const link = `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`;
-            updateState({ planApproval: { hashScanLink: link } });
-            setApproved(true);
-            setStatusText('');
-            await pollHcs();
-          } else {
-            setStatusText('Approval sent (Guardian processing)');
-            setApproved(true);
-          }
-        } else {
-          // No pending plans found — may already be auto-approved
-          setStatusText('Plan processed by Guardian');
-          setApproved(true);
-        }
-      }
-    } catch {
-      setStatusText('Plan submitted (approval pending)');
-      setApproved(true);
-    }
-    setApproving(false);
-  };
-
-  const isWorking = submitting || approving;
+  const pulse = (a: boolean) => a ? { animation: 'gp 2s ease-in-out infinite' } : {};
+  const selType = TYPES.find(t => t.id === selectedType)!;
 
   return (
-    <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #070C09 0%, #0F1F14 50%, #070C09 100%)' }} />
+    <div className="h-full flex" style={{ background: '#0a0810' }}>
+      <style jsx global>{`@keyframes gp{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}50%{box-shadow:0 0 0 6px rgba(245,158,11,0.2)}}.mapboxgl-ctrl-logo,.mapboxgl-ctrl-attrib{display:none!important}`}</style>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-8 py-16">
-        {/* Narrative */}
-        <div className="mb-10 animate-fade-in">
-          <p className="text-emerald-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
-            Step 4 of 8 · Treatment Plan
-          </p>
-          <h1 className="text-white text-4xl font-extralight mb-3" style={{ letterSpacing: '-0.03em' }}>The Plan</h1>
-          <p className="text-white/45 text-[15px] leading-[1.65] max-w-xl">
-            CAL FIRE crew lead J. Martinez has assessed the fuel conditions. A prescribed burn is the safest, most effective treatment for Tahoe Donner's mixed conifer stand. The plan includes crew certification, AQMD burn permit, and environmental clearance.
-          </p>
-          <div className="mt-2 flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-            <span className="px-2 py-0.5 rounded" style={{ background: 'rgba(234,88,12,0.1)', color: '#FB923C', border: '1px solid rgba(234,88,12,0.2)' }}>
-              Role: Operator
-            </span>
-            <span className="font-mono">fresh_oper</span>
-          </div>
-        </div>
-
-        {/* Treatment type selector */}
-        <div className="grid grid-cols-4 gap-3 mb-6 animate-fade-in stagger-1">
-          {TREATMENT_TYPES.map(t => {
-            const Icon = t.icon;
-            const isActive = selected === t.id;
-            return (
-              <button key={t.id} onClick={() => !isWorking && setSelected(t.id)}
-                className="rounded-xl p-4 text-left transition-all"
-                style={{
-                  background: isActive ? `rgba(255,255,255,0.06)` : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${isActive ? t.color + '40' : 'rgba(255,255,255,0.04)'}`,
-                }}>
-                <Icon size={20} style={{ color: isActive ? t.color : 'rgba(255,255,255,0.2)' }} />
-                <div className="text-[12px] font-medium mt-2" style={{ color: isActive ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)' }}>
-                  {t.label}
-                </div>
-                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{t.desc}</div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Two-column: Map + Form */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Left: Map */}
-          <div className="rounded-xl overflow-hidden animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <span className="text-white/80 text-[13px] font-medium">Draw Treatment Area</span>
-              <div className="flex items-center gap-2">
-                {polygonCoords.length > 0 && (
-                  <button onClick={resetPolygon} className="text-[10px] font-mono px-2 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)' }}>
-                    Reset
-                  </button>
-                )}
-                <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                  {polygonClosed ? 'Polygon closed' : polygonCoords.length < 3 ? `Click ${3 - polygonCoords.length} more points` : 'Double-click to close'}
-                </span>
-              </div>
-            </div>
-            <div ref={mapContainerRef} style={{ height: 380, width: '100%' }} />
-            {calculatedAcres > 0 && (
-              <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>Drawn area:</span>
-                <span className="text-[14px] font-mono font-bold text-emerald-400">{calculatedAcres.toFixed(1)} acres</span>
-              </div>
-            )}
-          </div>
-
-          {/* Right: Form card */}
-          <div className="rounded-xl overflow-hidden animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <h3 className="text-white/80 text-sm font-medium">Treatment Plan — {TREATMENT_TYPES.find(t => t.id === selected)?.label}</h3>
-              <p className="text-white/30 text-[10px] mt-0.5">Pre-filled with CAL FIRE RX standards. Creates a Verifiable Credential on Hedera.</p>
-            </div>
-
-            <div className="p-6 grid grid-cols-2 gap-4">
-              {[
-                { label: 'Plan ID', value: form.planId },
-                { label: 'Site ID', value: form.siteId },
-                { label: 'Treatment Type', value: TREATMENT_TYPES.find(t => t.id === selected)?.label || 'Prescribed Burn' },
-                { label: 'Planned Acres', value: `${form.plannedAcres} acres` },
-                { label: 'Fuel Load (Pre)', value: `${form.fuelLoadPre} tons/acre` },
-                { label: 'Crew Certification', value: form.crewCert },
-                { label: 'Burn Permit', value: form.burnPermit },
-                { label: 'Environmental Clearance', value: form.envClearance ? 'Approved' : 'Pending' },
-              ].map(f => (
-                <div key={f.label}>
-                  <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
-                  <div className="text-[12px] font-mono" style={{ color: 'rgba(255,255,255,0.8)' }}>{f.value}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="px-6 pb-6">
-              {approved ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.15)' }}>
-                    <CheckCircle2 size={16} className="text-emerald-400" />
-                    <span className="text-emerald-400 text-[12px] font-medium">Plan submitted and approved on Hedera</span>
-                    <a href={state.plan?.hashScanLink || `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`} target="_blank" rel="noopener noreferrer"
-                      className="ml-auto flex items-center gap-1 text-[10px] font-mono text-orange-400/70 hover:text-orange-400">
-                      View on HashScan <ExternalLink size={10} />
-                    </a>
-                  </div>
-                </div>
-              ) : submitted ? (
-                <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.15)' }}>
-                  <Loader2 size={16} className="text-amber-400 animate-spin motion-reduce:animate-none" />
-                  <span className="text-amber-400 text-[12px]">{statusText || 'Processing approval...'}</span>
-                </div>
-              ) : (
-                <button onClick={handleSubmit} disabled={isWorking}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
-                  style={{ background: '#EA580C' }}>
-                  {isWorking ? <Loader2 size={16} className="animate-spin motion-reduce:animate-none" /> : <Flame size={16} />}
-                  {isWorking ? statusText || 'Submitting...' : 'Submit Treatment Plan to Hedera'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* CTA */}
-        {approved && (
-          <div className="mt-8 text-center animate-fade-in">
-            <p className="text-white/30 text-[11px] mb-4">Plan approved. The crew is ready to burn.</p>
-            <button onClick={() => goToStep(4)}
-              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
-              style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
-              Report Treatment Completion <ArrowRight size={16} />
-            </button>
+      {/* Map (left, dominant) */}
+      <div className="flex-1 relative">
+        <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+        {guidePhase === 2 && !closed && (
+          <div className="absolute top-4 left-4 px-3 py-2 text-[11px]" style={{ background: 'rgba(10,8,14,0.8)', color: '#F59E0B', borderRadius: 6, border: '1px solid rgba(245,158,11,0.15)' }}>
+            Click 3+ points · Double-click to close{points.length > 0 && <span className="text-white/20 ml-2">{points.length} pts</span>}
           </div>
         )}
+        {closed && acres > 0 && (
+          <div className="absolute top-4 left-4 text-[13px] font-mono px-3 py-2" style={{ background: 'rgba(10,8,14,0.8)', color: '#10B981', borderRadius: 6 }}>
+            {acres} acres drawn
+          </div>
+        )}
+        {/* Faint site reference label */}
+        <div className="absolute bottom-3 left-3 text-[9px] font-mono" style={{ color: 'rgba(251,146,60,0.2)' }}>Site boundary (reference)</div>
+      </div>
+
+      {/* Right sidebar */}
+      <div className="w-80 shrink-0 flex flex-col justify-between py-10 px-7" style={{ borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(245,158,11,0.5)' }}>Step 4 · Treatment Plan</span>
+            <span className="px-2 py-0.5 text-[9px] font-medium" style={{ background: 'rgba(245,158,11,0.08)', color: '#F59E0B', borderRadius: 4 }}>Operator</span>
+          </div>
+
+          <h1 className="text-white mb-5" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', fontWeight: 100, letterSpacing: '-0.04em' }}>The Plan</h1>
+
+          {/* Treatment type selector */}
+          <div className="space-y-1 mb-4">
+            {TYPES.map(t => {
+              const I = t.icon, sel = selectedType === t.id;
+              return (
+                <button key={t.id} onClick={() => setSelectedType(t.id)} disabled={guidePhase > 1}
+                  className="w-full flex items-center gap-2.5 py-2 px-2.5 text-left transition-all"
+                  style={{ borderRadius: 6, background: sel ? `${t.color}08` : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                  <I size={13} style={{ color: sel ? t.color : 'rgba(255,255,255,0.15)' }} />
+                  <span className="flex-1 text-[11px]" style={{ color: sel ? '#fff' : 'rgba(255,255,255,0.3)' }}>{t.name}</span>
+                  <span className="text-[8px] font-mono" style={{ color: sel ? t.color : 'rgba(255,255,255,0.1)' }}>{t.reduction}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Weather chip */}
+          <div className="text-[9px] px-2.5 py-1.5 mb-4" style={{ background: 'rgba(16,185,129,0.04)', color: 'rgba(16,185,129,0.5)', borderRadius: 4 }}>
+            NOAA: Wind 5-8 mph NW · RH 35% · 62°F — <span style={{ color: '#10B981' }}>RX WINDOW</span>
+          </div>
+
+          {guidePhase === 1 && !success && (
+            <button onClick={advanceGuide} className="w-full py-2.5 text-[11px] font-medium text-white/50 mb-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>
+              Confirm: {selType.name}
+            </button>
+          )}
+        </div>
+
+        <div>
+          {guidePhase >= 3 && !success && (
+            <button onClick={handleSubmit} disabled={submitting} className="w-full py-3 text-[12px] font-medium text-white disabled:opacity-40" style={{ background: '#D97706', borderRadius: 8, ...pulse(!submitting) }}>
+              {submitting ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Submitting + Approving...</span> : 'Submit Plan to Hedera'}
+            </button>
+          )}
+          {success && (
+            <div className="flex items-center justify-between py-3 px-4" style={{ background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.1)', borderRadius: 8 }}>
+              <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-amber-400" /><span className="text-amber-400 text-[12px]">Plan submitted & approved</span></div>
+              <a href={state.plan?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[10px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">HashScan <ExternalLink size={9} /></a>
+            </div>
+          )}
+          {!success && <p className="text-[10px] text-white/12 mt-2">{guidePhase === 1 ? 'Select treatment type.' : guidePhase === 2 ? 'Draw treatment area on the map.' : 'Submit to Guardian.'}</p>}
+        </div>
       </div>
     </div>
   );

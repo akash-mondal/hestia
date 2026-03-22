@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
+import { JsonRpcProvider, Contract } from 'ethers';
 import { RISK_ORACLE_ADDRESS, HEDERA_JSON_RPC_URL } from '@/lib/hestia-constants';
 
 export const dynamic = 'force-dynamic';
 
-// ABI-encoded function signatures
-const CALCULATE_RISK_SIG = '0x'; // We'll use eth_call with encoded data
+const ABI = [
+  'function calculateRisk(tuple(uint8 fuel, uint8 slope, uint8 wui, uint8 access, uint8 historical, uint8 weather)) pure returns (uint8 total, string category)',
+];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,7 +17,26 @@ export async function GET(request: Request) {
   const historical = Number(searchParams.get('historical') || 8);
   const weather = Number(searchParams.get('weather') || 14);
 
-  // Calculate locally (same logic as contract — pure function)
+  // Try REAL eth_call to deployed contract
+  try {
+    const provider = new JsonRpcProvider(HEDERA_JSON_RPC_URL);
+    const contract = new Contract(RISK_ORACLE_ADDRESS, ABI, provider);
+    const result = await contract.calculateRisk({ fuel, slope, wui, access, historical, weather });
+    const total = Number(result.total);
+    const category = result.category;
+
+    return NextResponse.json({
+      total,
+      category,
+      components: { fuel, slope, wui, access, historical, weather },
+      contractAddress: RISK_ORACLE_ADDRESS,
+      source: 'hedera_testnet',
+    });
+  } catch (err) {
+    console.error('RiskScoreOracle eth_call failed, using local fallback:', err);
+  }
+
+  // Fallback: same logic as contract (pure function)
   const total = fuel + slope + wui + access + historical + weather;
   let category = 'Low';
   if (total > 75) category = 'Extreme';
@@ -27,6 +48,6 @@ export async function GET(request: Request) {
     category,
     components: { fuel, slope, wui, access, historical, weather },
     contractAddress: RISK_ORACLE_ADDRESS,
-    source: 'local_calculation',
+    source: 'local_fallback',
   });
 }

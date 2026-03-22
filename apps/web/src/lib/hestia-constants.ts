@@ -15,7 +15,7 @@ export const HASHSCAN_BASE = 'https://hashscan.io/testnet';
 // ── Smart Contracts ──
 export const RISK_ORACLE_ADDRESS = '0x7FdC9d74419b60e5126585B586FFfba57a8934A3';
 export const INSURANCE_CALC_ADDRESS = '0x751f5fD84e0eefc800a94734A386eAcEb9B745a9';
-export const HEDERA_JSON_RPC_URL = 'https://testnet.hedera.validationcloud.io/v1/ngp2e4S5nlu_OjOjZSJZ0iu5sfVfnNrBAm6Xtcq03eY';
+export const HEDERA_JSON_RPC_URL = process.env.HEDERA_JSON_RPC_URL || 'https://testnet.hedera.validationcloud.io/v1/ngp2e4S5nlu_OjOjZSJZ0iu5sfVfnNrBAm6Xtcq03eY';
 
 // ── Satellite API ──
 export const FIRE_SATELLITE_API_URL = process.env.FIRE_SATELLITE_API_URL || 'http://localhost:8001';
