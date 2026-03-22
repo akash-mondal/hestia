@@ -209,6 +209,7 @@ def make_guardian_schema(name, description, fields):
                 **properties,
             },
             "required": ["@context", "type"] + required,
+            "additionalProperties": True,
         },
         "fields": [
             {

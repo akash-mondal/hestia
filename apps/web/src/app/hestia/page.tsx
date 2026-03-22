@@ -259,7 +259,7 @@ export default function HestiaLanding() {
         )}
       </AnimatePresence>
 
-      {/* Chapter 7: Role Selector */}
+      {/* Chapter 7: Enter Experience */}
       <AnimatePresence>
         {activeChapter === 6 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -271,22 +271,21 @@ export default function HestiaLanding() {
               fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 300, letterSpacing: '-0.03em',
             }}>Step In</h2>
             <p className="text-white/50 text-sm mb-12 text-center max-w-lg">
-              Everything you just read is live. Pick a role and see the real data, real transactions, real satellite feeds for yourself.
+              Everything you just read is live. Walk through the entire wildfire resilience workflow — from satellite reconnaissance to WRC minting — with real Hedera transactions at every step.
             </p>
-            <div className="flex flex-row items-stretch justify-center gap-5 max-w-4xl px-6 pointer-events-auto">
-              {HESTIA_ROLES.map((role, i) => (
-                <motion.div key={role.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.1 }}
-                  className="w-[200px]">
-                  <Link href={role.href}
-                    className="group flex flex-col h-full p-6 rounded-2xl border border-white/15 hover:border-white/40 backdrop-blur-md transition-all hover:scale-[1.03]"
-                    style={{ background: 'rgba(21,10,0,0.6)' }}>
-                    <div className={`h-1 rounded-full bg-gradient-to-r ${role.gradient} mb-5 w-10 group-hover:w-full transition-all duration-500`} />
-                    <h3 className="text-white font-medium text-base mb-1">{role.title}</h3>
-                    <p className="text-white/40 text-[11px] tracking-wider uppercase">{role.subtitle}</p>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="pointer-events-auto">
+              <Link href="/hestia/app"
+                className="group flex items-center gap-4 px-10 py-5 rounded-2xl border border-white/20 hover:border-orange-400/40 backdrop-blur-md transition-all hover:scale-[1.03]"
+                style={{ background: 'rgba(21,10,0,0.6)' }}>
+                <div className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
+                <div>
+                  <h3 className="text-white font-medium text-lg">Enter the Experience</h3>
+                  <p className="text-white/40 text-[11px] tracking-wider">8 steps · Real Hedera transactions · Live on-chain proof</p>
+                </div>
+                <Flame size={20} className="text-orange-400/60 group-hover:text-orange-400 transition-colors ml-4" />
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

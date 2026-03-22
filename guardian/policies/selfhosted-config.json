@@ -3,13 +3,14 @@
   "policy_id": "69b2891d42d30f9a24fc9a18",
   "policy_topic_id": "0.0.8181382",
   "schema_iris": {
-    "FacilityRegistration": "#4446ea1a-7631-48fe-9205-47991c4d6cdf&1.0.0",
-    "SensorReading": "#71192499-361c-4f86-a745-728bbdaae846&1.0.0",
-    "ComplianceEvaluation": "#cc56ae96-e6ac-4b0e-9b9e-ebe835c10393&1.0.0",
-    "SatelliteValidation": "#939b3017-c83b-4d0d-94f3-c32bd32c8653&1.0.0"
+    "FacilityRegistration": "#65143ef6-e197-47a0-9bdb-14fc62689bc8&1.0.0",
+    "SensorReading": "#9a28ce29-c060-4621-9e12-7c916f46c187&1.0.0",
+    "ComplianceEvaluation": "#e8a5805b-23de-45b9-b418-60cd025c3aac&1.0.0",
+    "SatelliteValidation": "#a26bdcec-c5cf-427d-a041-de0064cf5609&1.0.0"
   },
   "token_ids": {
     "GGCC": "0.0.8182260",
-    "ZVIOL": "0.0.8182266"
+    "ZVIOL": "0.0.8182266",
+    "ZCERT": ""
   }
 }

@@ -19,7 +19,7 @@ import time
 import sys
 
 GUARDIAN_URL = "http://165.22.212.120:3000/api/v1"
-POLICY_ID = "69b2891d42d30f9a24fc9a18"
+POLICY_ID = "69bbb6b2b17ff3040769aaa8"
 USERNAME = "akash"
 PASSWORD = "Akash@17327"
 

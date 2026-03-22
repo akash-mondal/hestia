@@ -1,13 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, MapPin, TrendingDown, DollarSign, ExternalLink, Copy, CheckCircle2, Flame, TreePine, Send } from 'lucide-react';
+import { Shield, ExternalLink, Copy, CheckCircle2, Flame, TreePine, Home, TrendingDown, ArrowRight } from 'lucide-react';
 import { HASHSCAN_BASE, WRC_TOKEN_ID, CERT_TOKEN_ID, INSTANCE_TOPIC_ID, RISK_ORACLE_ADDRESS, INSURANCE_CALC_ADDRESS, TAGS, getRiskTier, DISCOUNT_TIERS } from '@/lib/hestia-constants';
 import { useGuardianSubmit } from '@/components/hestia/shared/use-guardian-submit';
 import HashScanProof from '@/components/hestia/shared/hashscan-proof';
-import RiskTierBadge from '@/components/hestia/shared/risk-tier-badge';
-import DanielFrameworkBanner from '@/components/hestia/shared/daniel-framework-banner';
-import LifecycleDots from '@/components/hestia/shared/lifecycle-dots';
 import type { SiteRegistration, RiskAssessment, InsuranceImpact } from '@/types/hestia';
 
 interface LandManagerWorkspaceProps {
@@ -20,10 +17,10 @@ interface LandManagerWorkspaceProps {
 
 export default function LandManagerWorkspace({ sites, assessments, insurance, wrcSupply, hcsCount }: LandManagerWorkspaceProps) {
   const [copied, setCopied] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const [formStep, setFormStep] = useState(1);
   const siteSubmit = useGuardianSubmit(TAGS.SITE_FORM, 'land-manager');
 
-  // Form state with Tahoe Donner defaults
   const [form, setForm] = useState({
     siteId: `TD-${String(sites.length + 1).padStart(3, '0')}`,
     siteName: '', ownerEntity: 'Tahoe Donner Association',
@@ -37,30 +34,17 @@ export default function LandManagerWorkspace({ sites, assessments, insurance, wr
   const avgReduction = assessments.length > 0
     ? (assessments.reduce((s, a) => s + Number(a.riskReductionPercent), 0) / assessments.length).toFixed(0) : '0';
   const totalSavings = insurance.reduce((s, i) => s + Number(i.estimatedAnnualSavings), 0);
+  const totalHomes = sites.length > 0 ? sites.reduce((s, st) => s + Number(st.wuiStructures || 0), 0) || 187 : 187;
 
-  // Determine lifecycle stage per site
   const getSiteStage = (siteId: string) => {
-    const hasAssessment = assessments.some(a => a.siteId === siteId);
     const hasMint = assessments.some(a => a.siteId === siteId && a.tokenAction === 'mint_wrc');
-    if (hasMint) return 3; // credited
-    if (hasAssessment) return 2; // assessed
-    return 0; // registered
+    if (hasMint) return 3;
+    if (assessments.some(a => a.siteId === siteId)) return 2;
+    return 0;
   };
 
   const copyProof = () => {
-    const text = `🔥 WILDFIRE RESILIENCE PROOF — ${form.ownerEntity}
-
-✓ ${sites.length} sites registered on Hedera blockchain
-✓ Risk reduced from 78 (Extreme) to 41 (Moderate) — ${avgReduction}% improvement
-✓ ${wrcDisplay} Wildfire Resilience Credits earned
-✓ Estimated insurance savings: $${totalSavings.toLocaleString()}/year
-
-Verify on Hedera HashScan:
-• WRC Token: ${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}
-• Audit Trail: ${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}
-• Risk Oracle: ${HASHSCAN_BASE}/contract/${RISK_ORACLE_ADDRESS}
-
-Powered by Hestia — Wildfire Resilience Credits on Hedera Guardian`;
+    const text = `WILDFIRE RESILIENCE PROOF — Tahoe Donner Association\n\n${sites.length} sites registered on Hedera blockchain\nRisk reduced ${avgReduction}%\n${wrcDisplay} WRC earned\nEstimated savings: $${totalSavings.toLocaleString()}/yr\n\nVerify:\n${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}\n${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`;
     navigator.clipboard?.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
@@ -76,64 +60,123 @@ Powered by Hestia — Wildfire Resilience Credits on Hedera Guardian`;
     });
   };
 
+  const STAGES = ['Registered', 'Treated', 'Assessed', 'Credited'];
+
   return (
-    <div className="space-y-6">
-      <DanielFrameworkBanner />
+    <div className="space-y-8">
 
-      {/* ── Hero: Community Shield ── */}
-      <div className="card overflow-hidden animate-fade-in stagger-1" style={{ background: 'linear-gradient(135deg, var(--accent-surface), var(--bg-card))' }}>
-        <div className="px-6 py-5">
-          <div className="flex items-center gap-2 mb-1">
-            <Shield size={18} style={{ color: 'var(--accent)' }} />
-            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Community Fire Shield</h2>
+      {/* ═══ HERO — Dark banner with key numbers ═══ */}
+      <div className="rounded-xl overflow-hidden animate-fade-in" style={{
+        background: 'linear-gradient(135deg, #1C1917 0%, #292524 50%, #1C1917 100%)',
+      }}>
+        <div className="px-8 py-7">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(234, 88, 12, 0.15)' }}>
+              <Shield size={20} style={{ color: '#FB923C' }} />
+            </div>
+            <div>
+              <h2 className="text-white text-lg font-semibold" style={{ letterSpacing: '-0.01em' }}>Tahoe Donner Association</h2>
+              <p className="text-white/40 text-[11px]">Nevada County, California · {sites.length} registered sites</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-white/30 text-[10px] font-mono">{hcsCount} on-chain records</span>
+            </div>
           </div>
-          <p className="text-[11px] mb-5" style={{ color: 'var(--text-muted)' }}>Tahoe Donner Association — Nevada County, California</p>
 
-          <div className="grid grid-cols-4 gap-6">
-            <div>
-              <div className="text-3xl font-mono font-bold" style={{ color: 'var(--accent)' }}>{sites.length > 0 ? sites.reduce((s, st) => s + Number(st.wuiStructures || 0), 0) || 187 : 187}</div>
-              <div className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--text-muted)' }}>Homes Protected</div>
-            </div>
-            <div>
-              <div className="text-3xl font-mono font-bold" style={{ color: 'var(--compliant)' }}>{avgReduction}%</div>
-              <div className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--text-muted)' }}>Risk Reduced</div>
-            </div>
-            <div>
-              <div className="text-3xl font-mono font-bold" style={{ color: 'var(--compliant)' }}>${totalSavings > 0 ? `${(totalSavings / 1000).toFixed(0)}K` : '111K'}</div>
-              <div className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--text-muted)' }}>Annual Savings</div>
-            </div>
-            <div>
-              <a href={`${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`} target="_blank" rel="noopener noreferrer" className="group">
-                <div className="text-3xl font-mono font-bold flex items-center gap-2 group-hover:underline" style={{ color: 'var(--accent)' }}>
-                  {wrcDisplay} <ExternalLink size={14} className="opacity-40 group-hover:opacity-100" />
+          <div className="grid grid-cols-4 gap-8">
+            {[
+              { value: totalHomes.toLocaleString(), label: 'Homes Protected', icon: Home, color: '#E2E8F0' },
+              { value: `${avgReduction}%`, label: 'Risk Reduced', icon: TrendingDown, color: '#34D399' },
+              { value: `$${totalSavings > 0 ? `${(totalSavings / 1000).toFixed(0)}K` : '111K'}`, label: 'Annual Savings', icon: Shield, color: '#34D399' },
+              { value: wrcDisplay, label: 'WRC Credits', icon: Flame, color: '#FB923C', link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}` },
+            ].map((stat, i) => {
+              const Icon = stat.icon;
+              const inner = (
+                <div key={i} style={{ animationDelay: `${i * 80}ms` }} className="animate-fade-in">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon size={13} style={{ color: 'rgba(255,255,255,0.25)' }} />
+                    <span className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.35)' }}>{stat.label}</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-mono font-semibold" style={{ color: stat.color, letterSpacing: '-0.02em' }}>
+                      {stat.value}
+                    </span>
+                    {stat.link && <ExternalLink size={12} style={{ color: 'rgba(255,255,255,0.2)' }} />}
+                  </div>
                 </div>
-                <div className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--text-muted)' }}>WRC Credits</div>
-              </a>
-            </div>
+              );
+              return stat.link ? (
+                <a key={i} href={stat.link} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">{inner}</a>
+              ) : <div key={i}>{inner}</div>;
+            })}
           </div>
         </div>
       </div>
 
-      {/* ── Site Cards ── */}
+      {/* ═══ SITES — Horizontal scroll of site cards ═══ */}
       {sites.length > 0 && (
         <div className="animate-fade-in stagger-2">
-          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Your Sites</h3>
-          <div className="flex gap-4 overflow-x-auto pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>Your Sites</h3>
+            <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{sites.length} registered</span>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-3" style={{ scrollbarWidth: 'thin' }}>
             {sites.map((site, i) => {
               const stage = getSiteStage(site.siteId);
               const tier = getRiskTier(Number(site.currentFireRiskScore));
               const assess = assessments.find(a => a.siteId === site.siteId);
               return (
-                <div key={i} className="card p-4 min-w-[260px] shrink-0 flex" style={{ borderLeft: `3px solid ${tier.color}` }}>
-                  <div className="flex-1">
-                    <div className="text-xs font-semibold mb-0.5" style={{ color: 'var(--text-primary)' }}>{site.siteName || site.siteId}</div>
-                    <div className="text-[10px] font-mono mb-2" style={{ color: 'var(--text-muted)' }}>{site.siteId}</div>
-                    <LifecycleDots currentStage={stage} />
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-[10px]">
-                      <div><span style={{ color: 'var(--text-muted)' }}>Acres</span> <span className="font-mono ml-1">{site.totalAcres}</span></div>
-                      <div><span style={{ color: 'var(--text-muted)' }}>WUI</span> <span className="font-mono ml-1">{site.wuiStructures}</span></div>
-                      <div><span style={{ color: 'var(--text-muted)' }}>Risk</span> <RiskTierBadge score={Number(site.currentFireRiskScore)} size="sm" /></div>
-                      {assess && <div><span style={{ color: 'var(--text-muted)' }}>WRC</span> <span className="font-mono ml-1 font-medium" style={{ color: 'var(--compliant)' }}>{assess.verifiedAcres}</span></div>}
+                <div key={i} className="card p-0 min-w-[280px] shrink-0 overflow-hidden">
+                  {/* Thin top accent bar */}
+                  <div className="h-1" style={{ background: stage >= 3 ? '#059669' : stage >= 2 ? '#3B82F6' : tier.color }} />
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>{site.siteName || site.siteId}</div>
+                        <div className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>{site.siteId}</div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[9px] font-mono font-medium" style={{ color: tier.color, background: tier.bg }}>
+                        {site.currentFireRiskScore}
+                      </span>
+                    </div>
+
+                    {/* Lifecycle progress bar */}
+                    <div className="mb-3">
+                      <div className="flex gap-0.5 mb-1.5">
+                        {STAGES.map((s, si) => (
+                          <div key={s} className="flex-1 h-1.5 rounded-full" style={{
+                            background: si <= stage ? (stage >= 3 ? '#059669' : stage >= 2 ? '#3B82F6' : '#D97706') : '#E5E7EB',
+                          }} />
+                        ))}
+                      </div>
+                      <div className="flex justify-between">
+                        {STAGES.map((s, si) => (
+                          <span key={s} className="text-[8px]" style={{ color: si <= stage ? 'var(--text-secondary)' : 'var(--text-muted)' }}>{s}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 text-[10px]">
+                      <div>
+                        <span className="block" style={{ color: 'var(--text-muted)' }}>Acres</span>
+                        <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{site.totalAcres}</span>
+                      </div>
+                      <div>
+                        <span className="block" style={{ color: 'var(--text-muted)' }}>Structures</span>
+                        <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{site.wuiStructures}</span>
+                      </div>
+                      {assess ? (
+                        <div>
+                          <span className="block" style={{ color: 'var(--text-muted)' }}>WRC Earned</span>
+                          <span className="font-mono font-semibold" style={{ color: '#059669' }}>{assess.verifiedAcres}</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="block" style={{ color: 'var(--text-muted)' }}>Vegetation</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>{site.vegetationType}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -143,143 +186,205 @@ Powered by Hestia — Wildfire Resilience Credits on Hedera Guardian`;
         </div>
       )}
 
-      {/* ── Insurance + Proof ── */}
+      {/* ═══ TWO-COLUMN: Insurance + Proof ═══ */}
       <div className="grid grid-cols-5 gap-6">
-        <div className="col-span-3 card p-5 animate-fade-in stagger-3">
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Insurance Premium Impact</h3>
-          <div className="grid grid-cols-5 gap-2 mb-4">
-            {DISCOUNT_TIERS.map(tier => {
-              const wrcPerAcre = sites.length > 0 ? (wrcSupply / 100) / sites.reduce((s, st) => s + Number(st.totalAcres || 640), 0) : 0;
-              const active = wrcPerAcre >= tier.minWrc && (tier === DISCOUNT_TIERS[DISCOUNT_TIERS.length - 1] || wrcPerAcre < DISCOUNT_TIERS[DISCOUNT_TIERS.indexOf(tier) + 1]?.minWrc);
+        {/* Insurance Tiers */}
+        <div className="col-span-3 card p-6 animate-fade-in stagger-3">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>Insurance Premium Discount</h3>
+            <a href={`${HASHSCAN_BASE}/contract/${INSURANCE_CALC_ADDRESS}`} target="_blank" rel="noopener noreferrer"
+              className="text-[9px] font-mono flex items-center gap-1 hover:underline" style={{ color: 'var(--text-muted)' }}>
+              On-chain contract <ExternalLink size={8} />
+            </a>
+          </div>
+
+          {/* Tier bar — horizontal progression */}
+          <div className="flex items-stretch gap-1 mb-5">
+            {DISCOUNT_TIERS.filter(t => t.discount > 0).map((tier, i) => {
+              const isGold = tier.name === 'Gold';
               return (
-                <div key={tier.name} className={`rounded-lg p-3 text-center ${active ? 'ring-2' : ''}`}
-                  style={{ background: active ? 'var(--accent-bg)' : 'var(--bg-muted)', outline: active ? '2px solid var(--accent)' : 'none' }}>
-                  <div className="text-[10px] font-semibold uppercase" style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }}>{tier.name}</div>
-                  <div className="text-lg font-mono font-bold" style={{ color: active ? 'var(--accent)' : 'var(--text-tertiary)' }}>{tier.discount}%</div>
-                  <div className="text-[8px]" style={{ color: 'var(--text-muted)' }}>{tier.minWrc} WRC/ac</div>
+                <div key={tier.name} className="flex-1 rounded-lg p-3 text-center relative transition-all"
+                  style={{
+                    background: isGold ? '#292524' : 'var(--bg-muted)',
+                    border: isGold ? '1px solid rgba(234,88,12,0.3)' : '1px solid transparent',
+                  }}>
+                  <div className="text-[9px] font-semibold uppercase tracking-wider mb-1"
+                    style={{ color: isGold ? '#FB923C' : 'var(--text-muted)' }}>{tier.name}</div>
+                  <div className="text-xl font-mono font-bold mb-0.5"
+                    style={{ color: isGold ? '#FFFFFF' : 'var(--text-tertiary)' }}>{tier.discount}%</div>
+                  <div className="text-[8px]" style={{ color: isGold ? 'rgba(255,255,255,0.4)' : 'var(--text-muted)' }}>
+                    ≥{tier.minWrc} WRC/acre
+                  </div>
+                  {isGold && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[7px] font-bold uppercase tracking-wider"
+                      style={{ background: '#EA580C', color: 'white' }}>
+                      Tahoe Benchmark
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
-          <div className="text-[10px] pt-3" style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
-            Tahoe Donner benchmark: 39% premium reduction (Gold tier). Parametric trigger: 5 FIRMS hotspots → auto $2.5M payout.
+
+          <div className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Tahoe Donner HOA secured a <strong style={{ color: 'var(--text-secondary)' }}>39% premium reduction</strong> through 20+ years of verified forest management — the first parametric wildfire insurance policy of its kind. Hestia builds the infrastructure to make this scalable.
           </div>
         </div>
 
-        <div className="col-span-2 card p-5 animate-fade-in stagger-4">
-          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Proof for Your Insurance Agent</h3>
-          <div className="text-[11px] leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
-            Your community earned <strong>{wrcDisplay} WRC</strong> through verified fuel treatment. Risk reduced from <strong>78</strong> to <strong>41</strong>. Premium eligible for discount.
-          </div>
-          <div className="space-y-2 mb-4">
+        {/* Proof Card */}
+        <div className="col-span-2 card p-6 animate-fade-in stagger-4 flex flex-col">
+          <h3 className="text-[13px] font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Share with Your Insurer</h3>
+          <p className="text-[11px] leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
+            {wrcDisplay} Wildfire Resilience Credits earned. Risk reduced from <strong>78</strong> (Extreme) to <strong>41</strong> (Moderate). All records independently verifiable on Hedera.
+          </p>
+
+          <div className="space-y-0 mb-4 flex-1">
             {[
               { label: 'WRC Token', id: WRC_TOKEN_ID, type: 'token' },
               { label: 'Audit Trail', id: INSTANCE_TOPIC_ID, type: 'topic' },
-              { label: 'Risk Oracle', id: RISK_ORACLE_ADDRESS, type: 'contract' },
+              { label: 'Risk Contract', id: RISK_ORACLE_ADDRESS, type: 'contract' },
             ].map(item => (
               <a key={item.id} href={`${HASHSCAN_BASE}/${item.type}/${item.id}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-between py-1.5 text-[10px] hover:opacity-80">
-                <span style={{ color: 'var(--text-muted)' }}>{item.label}</span>
-                <span className="font-mono flex items-center gap-1" style={{ color: 'var(--accent)' }}>
-                  {item.id.length > 16 ? item.id.slice(0, 8) + '...' + item.id.slice(-6) : item.id} <ExternalLink size={8} />
+                className="flex items-center justify-between py-2.5 border-b hover:bg-black/[0.02] transition-colors px-1"
+                style={{ borderColor: 'var(--border-subtle)' }}>
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{item.label}</span>
+                <span className="font-mono text-[10px] flex items-center gap-1.5" style={{ color: '#1D4ED8' }}>
+                  {item.id.length > 16 ? item.id.slice(0, 10) + '…' + item.id.slice(-6) : item.id}
+                  <ExternalLink size={9} style={{ opacity: 0.5 }} />
                 </span>
               </a>
             ))}
           </div>
+
           <button onClick={copyProof}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-semibold transition-all"
-            style={{ color: copied ? 'var(--compliant)' : 'var(--accent)', background: copied ? 'rgba(5,150,105,0.08)' : 'var(--accent-bg)', border: `1px solid ${copied ? 'var(--compliant)' : 'var(--accent-border)'}` }}>
-            {copied ? <><CheckCircle2 size={12} /> Copied to clipboard!</> : <><Copy size={12} /> Copy Proof for Insurance Agent</>}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-[11px] font-semibold transition-all"
+            style={{
+              color: copied ? 'white' : 'var(--text-primary)',
+              background: copied ? '#059669' : 'var(--bg-muted)',
+              border: copied ? 'none' : '1px solid var(--border-default)',
+            }}>
+            {copied ? <><CheckCircle2 size={13} /> Copied!</> : <><Copy size={13} /> Copy Proof for Insurance Agent</>}
           </button>
         </div>
       </div>
 
-      {/* ── Smart Site Registration ── */}
-      <div className="card animate-fade-in stagger-5">
-        <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Register New Site</h3>
-          <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Step {formStep} of 2 — {formStep === 1 ? 'Site details' : 'Insurance info (optional)'}
-          </p>
-        </div>
-        <div className="p-5">
-          {formStep === 1 ? (
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { key: 'siteName', label: 'Site Name', ph: 'Tahoe Donner Unit 12' },
-                { key: 'siteId', label: 'Site ID', ph: 'TD-004' },
-                { key: 'acres', label: 'Total Acres', type: 'number' },
-                { key: 'wui', label: 'WUI Structures', type: 'number' },
-                { key: 'lat', label: 'GPS Latitude', type: 'number' },
-                { key: 'lon', label: 'GPS Longitude', type: 'number' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-[10px] font-semibold uppercase tracking-wider block mb-1" style={{ color: 'var(--text-muted)' }}>{f.label}</label>
-                  <input type={f.type || 'text'} step="any"
-                    value={String((form as Record<string, unknown>)[f.key] ?? '')}
-                    onChange={e => setForm(p => ({ ...p, [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value }))}
-                    placeholder={f.ph}
-                    className="w-full px-3 py-2 rounded-md text-xs font-mono border"
-                    style={{ borderColor: 'var(--border-default)', background: 'var(--bg-card)' }} />
-                </div>
-              ))}
-              <div className="col-span-2 flex justify-end">
-                <button onClick={() => setFormStep(2)} className="px-4 py-2 rounded-lg text-xs font-semibold text-white" style={{ background: 'var(--accent-gradient)' }}>
-                  Next: Insurance Info →
-                </button>
-              </div>
+      {/* ═══ REGISTER SITE ═══ */}
+      <div className="card overflow-hidden animate-fade-in stagger-5">
+        <button onClick={() => setFormOpen(!formOpen)}
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-black/[0.01] transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--bg-muted)' }}>
+              <TreePine size={16} style={{ color: 'var(--text-secondary)' }} />
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { key: 'insurer', label: 'Insurance Provider', ph: 'Swiss Re' },
-                { key: 'premium', label: 'Annual Premium ($)', type: 'number' },
-                { key: 'hedera', label: 'Hedera Account', ph: '0.0.8316646' },
-                { key: 'risk', label: 'Current Risk Score (0-100)', type: 'number' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-[10px] font-semibold uppercase tracking-wider block mb-1" style={{ color: 'var(--text-muted)' }}>{f.label}</label>
-                  <input type={f.type || 'text'} step="any"
-                    value={String((form as Record<string, unknown>)[f.key] ?? '')}
-                    onChange={e => setForm(p => ({ ...p, [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value }))}
-                    placeholder={f.ph}
-                    className="w-full px-3 py-2 rounded-md text-xs font-mono border"
-                    style={{ borderColor: 'var(--border-default)', background: 'var(--bg-card)' }} />
+            <div>
+              <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>Register New Site</h3>
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Add a wildfire resilience site to the Hedera blockchain</p>
+            </div>
+          </div>
+          <ArrowRight size={16} style={{ color: 'var(--text-muted)', transform: formOpen ? 'rotate(90deg)' : '', transition: 'transform 200ms' }} />
+        </button>
+
+        {formOpen && (
+          <div className="border-t px-6 py-5" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-muted)' }}>
+            <div className="flex items-center gap-2 mb-4">
+              {[1, 2].map(s => (
+                <div key={s} className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                    style={{
+                      background: formStep >= s ? '#292524' : 'var(--bg-card)',
+                      color: formStep >= s ? 'white' : 'var(--text-muted)',
+                      border: formStep >= s ? 'none' : '1px solid var(--border-default)',
+                    }}>{s}</div>
+                  <span className="text-[10px] font-medium" style={{ color: formStep >= s ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    {s === 1 ? 'Site Details' : 'Insurance'}
+                  </span>
+                  {s === 1 && <div className="w-8 h-px mx-1" style={{ background: formStep >= 2 ? '#292524' : 'var(--border-default)' }} />}
                 </div>
               ))}
-              <div className="col-span-2">
-                <HashScanProof loading={siteSubmit.loading} success={siteSubmit.success} error={siteSubmit.error} hashScanLink={siteSubmit.hashScanLink} label="Site registered on Hedera" />
-                {!siteSubmit.success && (
-                  <div className="flex gap-3 mt-2">
-                    <button onClick={() => setFormStep(1)} className="px-4 py-2 rounded-lg text-xs font-medium" style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
-                      ← Back
-                    </button>
-                    <button onClick={handleSubmitSite} disabled={siteSubmit.loading}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
-                      style={{ background: 'var(--accent-gradient)' }}>
-                      <Flame size={14} /> Register Site on Hedera
-                    </button>
+            </div>
+
+            {formStep === 1 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: 'siteName', label: 'Site Name', ph: 'Tahoe Donner Unit 12' },
+                  { key: 'siteId', label: 'Site ID', ph: 'TD-004' },
+                  { key: 'acres', label: 'Acres', type: 'number' },
+                  { key: 'wui', label: 'Structures at Risk', type: 'number' },
+                  { key: 'lat', label: 'Latitude', type: 'number' },
+                  { key: 'lon', label: 'Longitude', type: 'number' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label className="text-[10px] font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>{f.label}</label>
+                    <input type={f.type || 'text'} step="any"
+                      value={String((form as Record<string, unknown>)[f.key] ?? '')}
+                      onChange={e => setForm(p => ({ ...p, [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value }))}
+                      placeholder={f.ph}
+                      className="w-full px-3 py-2.5 rounded-lg text-[12px] font-mono border-0 focus:ring-2 focus:ring-offset-1"
+                      style={{ background: 'var(--bg-card)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)', color: 'var(--text-primary)' }} />
                   </div>
-                )}
+                ))}
+                <div className="col-span-2 flex justify-end pt-2">
+                  <button onClick={() => setFormStep(2)} className="px-5 py-2.5 rounded-lg text-[11px] font-semibold text-white"
+                    style={{ background: '#292524' }}>
+                    Next →
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: 'insurer', label: 'Insurance Provider', ph: 'Swiss Re' },
+                  { key: 'premium', label: 'Annual Premium ($)', type: 'number' },
+                  { key: 'hedera', label: 'Hedera Account', ph: '0.0.8316646' },
+                  { key: 'risk', label: 'Risk Score (0-100)', type: 'number' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label className="text-[10px] font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>{f.label}</label>
+                    <input type={f.type || 'text'} step="any"
+                      value={String((form as Record<string, unknown>)[f.key] ?? '')}
+                      onChange={e => setForm(p => ({ ...p, [f.key]: f.type === 'number' ? Number(e.target.value) : e.target.value }))}
+                      placeholder={f.ph}
+                      className="w-full px-3 py-2.5 rounded-lg text-[12px] font-mono border-0"
+                      style={{ background: 'var(--bg-card)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)', color: 'var(--text-primary)' }} />
+                  </div>
+                ))}
+                <div className="col-span-2">
+                  <HashScanProof loading={siteSubmit.loading} success={siteSubmit.success} error={siteSubmit.error} hashScanLink={siteSubmit.hashScanLink} label="Site registered on Hedera" />
+                  {!siteSubmit.success && (
+                    <div className="flex gap-3 mt-3">
+                      <button onClick={() => setFormStep(1)} className="px-4 py-2.5 rounded-lg text-[11px] font-medium"
+                        style={{ color: 'var(--text-secondary)', background: 'var(--bg-card)' }}>
+                        ← Back
+                      </button>
+                      <button onClick={handleSubmitSite} disabled={siteSubmit.loading}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-semibold text-white disabled:opacity-50"
+                        style={{ background: '#EA580C' }}>
+                        <Flame size={13} /> Register on Hedera
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── On-Chain Proof Footer ── */}
-      <div className="flex items-center gap-6 px-4 py-3 rounded-lg text-[10px]" style={{ background: 'var(--bg-muted)', border: '1px solid var(--border-subtle)' }}>
+      {/* ═══ FOOTER — Blockchain proof bar ═══ */}
+      <div className="flex items-center gap-6 px-5 py-3.5 rounded-lg text-[10px]"
+        style={{ background: '#FAFAF9', border: '1px solid #E7E5E4' }}>
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span style={{ color: 'var(--text-muted)' }}>{hcsCount} records on Hedera Testnet</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span style={{ color: '#78716C' }}>Hedera Testnet · {hcsCount} records</span>
         </div>
+        <div className="flex-1" />
         {[
-          { label: 'WRC', id: WRC_TOKEN_ID, type: 'token' },
-          { label: 'CERT', id: CERT_TOKEN_ID, type: 'token' },
-          { label: 'Topic', id: INSTANCE_TOPIC_ID, type: 'topic' },
+          { label: 'WRC Token', id: WRC_TOKEN_ID, type: 'token' },
+          { label: 'CERT NFT', id: CERT_TOKEN_ID, type: 'token' },
+          { label: 'HCS Topic', id: INSTANCE_TOPIC_ID, type: 'topic' },
         ].map(item => (
           <a key={item.id} href={`${HASHSCAN_BASE}/${item.type}/${item.id}`} target="_blank" rel="noopener noreferrer"
-            className="font-mono flex items-center gap-1 hover:underline" style={{ color: 'var(--accent)' }}>
+            className="font-mono flex items-center gap-1 hover:underline" style={{ color: '#78716C' }}>
             {item.label} <ExternalLink size={8} />
           </a>
         ))}

@@ -105,10 +105,7 @@ export const HESTIA_CHAPTER_ACCENTS = [
 ];
 
 export const HESTIA_ROLES = [
-  { id: 'land-manager', title: 'Land Manager', subtitle: 'HOA / Fire District', href: '/hestia/land-manager', gradient: 'from-orange-700 to-amber-500' },
-  { id: 'operator', title: 'Operator', subtitle: 'Burn Crew / Contractor', href: '/hestia/operator', gradient: 'from-emerald-700 to-emerald-400' },
-  { id: 'verifier', title: 'Verifier', subtitle: 'CAL FIRE / Insurer', href: '/hestia/verifier', gradient: 'from-indigo-700 to-indigo-400' },
-  { id: 'satellite', title: 'Satellite', subtitle: 'Automated Middleware', href: '/hestia/satellite', gradient: 'from-red-700 to-red-400' },
+  { id: 'experience', title: 'Enter Experience', subtitle: 'Full End-to-End Flow', href: '/hestia/app', gradient: 'from-orange-700 to-amber-500' },
 ];
 
 export const HESTIA_PARTNERS = [

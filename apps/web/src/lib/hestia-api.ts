@@ -23,7 +23,7 @@ export async function getHestiaToken(role?: HestiaRole): Promise<string> {
   if (cached && cached.expiresAt > Date.now()) return cached.accessToken;
 
   // Deduplicate concurrent requests for the same role
-  if (pendingTokens[cacheKey]) return pendingTokens[cacheKey];
+  if (cacheKey in pendingTokens) return pendingTokens[cacheKey];
 
   pendingTokens[cacheKey] = (async () => {
     const creds = role ? HESTIA_USERS[role] : HESTIA_ADMIN;
