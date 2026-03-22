@@ -52,3 +52,4 @@ npm-debug.log*
 # Misc
 *.tsbuildinfo
 gee-service-account.json
+.claude/
