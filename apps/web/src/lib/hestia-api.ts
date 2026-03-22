@@ -34,7 +34,7 @@ export async function getHestiaToken(role?: HestiaRole): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
   });
-  if (!tokenRes.ok) throw new Error(`Hestia access-token failed: ${tokenRes.status}`);
+  if (tokenRes.status !== 200 && tokenRes.status !== 201) throw new Error(`Hestia access-token failed: ${tokenRes.status}`);
   const { accessToken } = await tokenRes.json();
 
   tokenCache[cacheKey] = { accessToken, expiresAt: Date.now() + 25 * 60 * 1000 };
