@@ -1,4 +1,4 @@
-import { Coins, Clock, CheckCircle2, MessageSquare } from 'lucide-react';
+
 import { fetchSites, fetchPlans, fetchAssessments, fetchInsurance, fetchWrcSupply, fetchHcsMessageCount, getDocumentId } from '@/lib/hestia-api';
 import { HASHSCAN_BASE, WRC_TOKEN_ID, INSTANCE_TOPIC_ID, getRiskTier, RISK_COMPONENTS } from '@/lib/hestia-constants';
 import HestiaStatsGrid from '@/components/hestia/shared/hestia-stats-grid';
@@ -33,21 +33,21 @@ export default async function VerifierPortal() {
     {
       label: 'Pending Approvals',
       value: pendingCount,
-      icon: Clock,
+      iconName: 'Clock',
       glow: pendingCount > 0 ? 'amber' : 'green',
       subtitle: `${pendingSites.length} sites + ${pendingPlans.length} plans`,
     },
     {
       label: 'Verified',
       value: verifiedCount,
-      icon: CheckCircle2,
+      iconName: 'CheckCircle2',
       glow: 'green',
       subtitle: `of ${assessments.length} assessments`,
     },
     {
       label: 'WRC Supply',
       value: (wrcSupply / 100).toLocaleString(),
-      icon: Coins,
+      iconName: 'Coins',
       glow: 'teal',
       link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`,
       subtitle: 'Wildfire Resilience Credits',
@@ -55,7 +55,7 @@ export default async function VerifierPortal() {
     {
       label: 'HCS Messages',
       value: hcsCount,
-      icon: MessageSquare,
+      iconName: 'MessageSquare',
       glow: 'green',
       link: `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`,
       subtitle: 'Hedera Consensus records',

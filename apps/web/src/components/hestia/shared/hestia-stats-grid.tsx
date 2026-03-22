@@ -1,7 +1,12 @@
 'use client';
 
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Coins, MapPin, TrendingDown, DollarSign, Flame, TreePine, CheckCircle2, Clock, MessageSquare, FileCheck, Satellite, Shield } from 'lucide-react';
 import type { HestiaStatCard } from '@/types/hestia';
+
+const ICON_MAP: Record<string, typeof Coins> = {
+  Coins, MapPin, TrendingDown, DollarSign, Flame, TreePine, CheckCircle2,
+  Clock, MessageSquare, FileCheck, Satellite, Shield, ExternalLink,
+};
 
 interface HestiaStatsGridProps {
   stats: HestiaStatCard[];
@@ -19,7 +24,7 @@ export default function HestiaStatsGrid({ stats }: HestiaStatsGridProps) {
   return (
     <div className="grid grid-cols-4 gap-4">
       {stats.map((stat, i) => {
-        const Icon = stat.icon;
+        const Icon = ICON_MAP[stat.iconName] || Coins;
         const glowClass = GLOW_MAP[stat.glow] || '';
         const isLinked = !!stat.link;
 

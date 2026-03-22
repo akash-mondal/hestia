@@ -1,4 +1,4 @@
-import { Flame, FileCheck, Coins, Satellite, ExternalLink, AlertTriangle, TrendingDown, Shield } from 'lucide-react';
+import { ExternalLink, AlertTriangle, TrendingDown, Shield } from 'lucide-react';
 import { fetchAssessments, fetchWrcSupply, fetchInsurance } from '@/lib/hestia-api';
 import { HASHSCAN_BASE, WRC_TOKEN_ID, INSTANCE_TOPIC_ID, TAGS, getRiskTier, RISK_ORACLE_ADDRESS, INSURANCE_CALC_ADDRESS, DISCOUNT_TIERS } from '@/lib/hestia-constants';
 import HestiaStatsGrid from '@/components/hestia/shared/hestia-stats-grid';
@@ -59,10 +59,10 @@ export default async function SatellitePortal() {
   const wrcDisplay = (wrcSupply / 100).toLocaleString();
 
   const stats: HestiaStatCard[] = [
-    { label: 'FIRMS Fires', value: 3, icon: Flame, glow: 'red', subtitle: 'California last 7 days' },
-    { label: 'Assessments', value: assessments.length, icon: FileCheck, glow: 'amber', subtitle: 'Risk assessments on-chain' },
-    { label: 'WRC Supply', value: wrcDisplay, icon: Coins, glow: 'green', link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`, subtitle: 'Total minted' },
-    { label: 'Data Sources', value: 4, icon: Satellite, glow: 'teal', subtitle: 'FIRMS, Sentinel-2, LANDFIRE, NOAA' },
+    { label: 'FIRMS Fires', value: 3, iconName: 'Flame', glow: 'red', subtitle: 'California last 7 days' },
+    { label: 'Assessments', value: assessments.length, iconName: 'FileCheck', glow: 'amber', subtitle: 'Risk assessments on-chain' },
+    { label: 'WRC Supply', value: wrcDisplay, iconName: 'Coins', glow: 'green', link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`, subtitle: 'Total minted' },
+    { label: 'Data Sources', value: 4, iconName: 'Satellite', glow: 'teal', subtitle: 'FIRMS, Sentinel-2, LANDFIRE, NOAA' },
   ];
 
   return (

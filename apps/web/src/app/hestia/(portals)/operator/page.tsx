@@ -1,4 +1,4 @@
-import { Flame, TreePine, TrendingDown, CheckCircle2, ExternalLink, ArrowRight } from 'lucide-react';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 import { fetchPlans, fetchAssessments, fetchReports } from '@/lib/hestia-api';
 import { TAGS, HASHSCAN_BASE, WRC_TOKEN_ID, INSTANCE_TOPIC_ID, getRiskTier } from '@/lib/hestia-constants';
 import HestiaStatsGrid from '@/components/hestia/shared/hestia-stats-grid';
@@ -54,10 +54,10 @@ export default async function OperatorPortal() {
     ? (assessments.reduce((s, a) => s + Number(a.riskReductionPercent), 0) / assessments.length).toFixed(1) : '0';
 
   const stats: HestiaStatCard[] = [
-    { label: 'Active Plans', value: plans.length, icon: Flame, glow: 'amber', subtitle: 'Pending treatment plans' },
-    { label: 'Acres Treated', value: totalAcres.toLocaleString(), icon: TreePine, glow: 'green', subtitle: 'Satellite-verified' },
-    { label: 'Avg Fuel Reduction', value: `${avgReduction}%`, icon: TrendingDown, glow: 'teal', subtitle: 'Across all treatments' },
-    { label: 'WRC Minted', value: assessments.filter(a => a.tokenAction === 'mint_wrc').length, icon: CheckCircle2, glow: 'green',
+    { label: 'Active Plans', value: plans.length, iconName: 'Flame', glow: 'amber', subtitle: 'Pending treatment plans' },
+    { label: 'Acres Treated', value: totalAcres.toLocaleString(), iconName: 'TreePine', glow: 'green', subtitle: 'Satellite-verified' },
+    { label: 'Avg Fuel Reduction', value: `${avgReduction}%`, iconName: 'TrendingDown', glow: 'teal', subtitle: 'Across all treatments' },
+    { label: 'WRC Minted', value: assessments.filter(a => a.tokenAction === 'mint_wrc').length, iconName: 'CheckCircle2', glow: 'green',
       link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`, subtitle: 'Credits earned' },
   ];
 

@@ -1,5 +1,3 @@
-import type { LucideIcon } from 'lucide-react';
-
 // ── Guardian Schema Types (field0-fieldN mapped to named properties) ──
 
 export interface SiteRegistration {
@@ -99,7 +97,7 @@ export interface SatelliteValidation {
 export interface HestiaStatCard {
   label: string;
   value: string | number;
-  icon: LucideIcon;
+  iconName: string;
   glow: 'green' | 'amber' | 'teal' | 'red' | 'orange';
   link?: string;
   subtitle?: string;

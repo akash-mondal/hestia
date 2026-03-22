@@ -1,4 +1,4 @@
-import { Coins, MapPin, TrendingDown, DollarSign, ExternalLink, Shield, TreePine, Flame } from 'lucide-react';
+import { ExternalLink, Shield, TreePine } from 'lucide-react';
 import { fetchSites, fetchAssessments, fetchInsurance, fetchWrcSupply, fetchHcsMessageCount } from '@/lib/hestia-api';
 import { HASHSCAN_BASE, WRC_TOKEN_ID, CERT_TOKEN_ID, INSTANCE_TOPIC_ID, TAGS, getRiskTier, RISK_ORACLE_ADDRESS, INSURANCE_CALC_ADDRESS } from '@/lib/hestia-constants';
 import HestiaStatsGrid from '@/components/hestia/shared/hestia-stats-grid';
@@ -48,10 +48,10 @@ export default async function LandManagerPortal() {
   const totalSavings = insurance.reduce((sum, i) => sum + Number(i.estimatedAnnualSavings), 0);
 
   const stats: HestiaStatCard[] = [
-    { label: 'WRC Earned', value: wrcDisplay, icon: Coins, glow: 'green', link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`, subtitle: 'Wildfire Resilience Credits' },
-    { label: 'Sites Registered', value: sites.length, icon: MapPin, glow: 'amber', subtitle: 'Treatment-eligible sites' },
-    { label: 'Avg Risk Reduction', value: `${avgReduction}%`, icon: TrendingDown, glow: 'teal', subtitle: 'Pre vs post treatment' },
-    { label: 'Annual Savings', value: `$${totalSavings.toLocaleString()}`, icon: DollarSign, glow: 'green', subtitle: 'Insurance premium savings' },
+    { label: 'WRC Earned', value: wrcDisplay, iconName: 'Coins', glow: 'green', link: `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`, subtitle: 'Wildfire Resilience Credits' },
+    { label: 'Sites Registered', value: sites.length, iconName: 'MapPin', glow: 'amber', subtitle: 'Treatment-eligible sites' },
+    { label: 'Avg Risk Reduction', value: `${avgReduction}%`, iconName: 'TrendingDown', glow: 'teal', subtitle: 'Pre vs post treatment' },
+    { label: 'Annual Savings', value: `$${totalSavings.toLocaleString()}`, iconName: 'DollarSign', glow: 'green', subtitle: 'Insurance premium savings' },
   ];
 
   return (
