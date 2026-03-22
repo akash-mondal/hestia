@@ -155,7 +155,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
             ) : sites.length === 0 ? (
               <div className="text-center py-8">
                 <ShieldCheck size={24} className="text-white/10 mx-auto mb-3" />
-                <p className="text-white/30 text-[11px]">No pending sites found. The site may already be approved, or Guardian is still processing.</p>
+                <p className="text-white/30 text-[11px]">Your site registration is being processed on Hedera. Guardian creates a Verifiable Credential and anchors it to the Consensus Service — this typically takes 5-10 seconds.</p>
                 <button onClick={fetchPendingSites} className="mt-2 text-orange-400 text-[11px] underline">Refresh</button>
               </div>
             ) : (
