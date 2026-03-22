@@ -1,28 +1,36 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { MapPin, RefreshCw, ArrowRight, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { MapPin, RefreshCw, ArrowRight, AlertTriangle, Crosshair, Layers, Navigation } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { StepProps } from './hestia-flow';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
 
+interface Fire { latitude: number; longitude: number; brightness: number; confidence: string; frp: number; acq_date: string; acq_time: string }
+interface VegResult { pre_ndvi: number; post_ndvi: number; dnbr: number; burn_severity: string; source: string }
+
 export default function StepLandscape({ state, updateState, goToStep }: StepProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const rotatingRef = useRef(true);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [fires, setFires] = useState<{ count: number; fires: { latitude: number; longitude: number; brightness: number; confidence: string; frp: number; acq_date: string }[]; source: string } | null>(null);
+  const [fires, setFires] = useState<{ count: number; fires: Fire[]; source: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [vegLoading, setVegLoading] = useState(false);
+  const [vegResult, setVegResult] = useState<VegResult | null>(null);
+  const [clickedPoint, setClickedPoint] = useState<{ lat: number; lon: number } | null>(null);
+  const [activeStyle, setActiveStyle] = useState<'satellite' | 'terrain' | 'dark'>('satellite');
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
 
-  // Initialize Mapbox satellite map
+  // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/satellite-streets-v12',
-      center: [-120.23, 39.34], // Tahoe Donner
+      center: [-120.23, 39.34],
       zoom: 8,
       pitch: 45,
       bearing: -15,
@@ -31,32 +39,82 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
     });
 
     map.on('style.load', () => {
-      // Hide most labels for cleaner look
-      for (const layer of map.getStyle().layers) {
-        if (layer.type === 'symbol' && layer.id.includes('label')) {
-          map.setLayoutProperty(layer.id, 'visibility', 'none');
+      try {
+        for (const layer of map.getStyle().layers) {
+          if (layer.type === 'symbol' && layer.id.includes('label')) {
+            map.setLayoutProperty(layer.id, 'visibility', 'none');
+          }
         }
-      }
+      } catch { /* */ }
       setMapLoaded(true);
     });
 
-    // Slow rotation
-    map.on('load', () => {
-      let bearing = -15;
-      const rotate = () => {
-        if (!mapRef.current) return;
-        bearing += 0.03;
-        mapRef.current.rotateTo(bearing, { duration: 0 });
-        requestAnimationFrame(rotate);
-      };
-      rotate();
+    // Slow rotation — stops on user interaction
+    let bearing = -15;
+    const rotate = () => {
+      if (!mapRef.current || !rotatingRef.current) return;
+      bearing += 0.02;
+      mapRef.current.rotateTo(bearing, { duration: 0 });
+      requestAnimationFrame(rotate);
+    };
+    map.on('load', () => rotate());
+
+    // Stop rotation on user interaction
+    const stopRotation = () => { rotatingRef.current = false; };
+    map.on('mousedown', stopRotation);
+    map.on('touchstart', stopRotation);
+
+    // Click to query NDVI
+    map.on('click', (e) => {
+      const { lng, lat } = e.lngLat;
+      setClickedPoint({ lat, lon: lng });
     });
+
+    // Add Tahoe Donner site marker
+    const siteEl = document.createElement('div');
+    siteEl.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#FB923C;border:2px solid white;box-shadow:0 0 10px rgba(251,146,60,0.5);cursor:pointer;';
+    new mapboxgl.Marker(siteEl)
+      .setLngLat([-120.2346, 39.3406])
+      .setPopup(new mapboxgl.Popup({ offset: 10, className: 'hestia-popup' }).setHTML(
+        '<div style="font-family:monospace;font-size:11px;"><strong>Tahoe Donner</strong><br/>39.3406°N, 120.2346°W<br/>640 acres · 187 structures<br/>Risk: 78/100 (Extreme)</div>'
+      ))
+      .addTo(map);
 
     mapRef.current = map;
     return () => { map.remove(); mapRef.current = null; };
   }, []);
 
-  const fetchFires = async () => {
+  // Fetch NDVI when user clicks map
+  useEffect(() => {
+    if (!clickedPoint) return;
+    setVegLoading(true);
+    fetch(`/api/hestia/satellite/vegetation?lat=${clickedPoint.lat}&lon=${clickedPoint.lon}&pre_date=2025-06-01&post_date=2026-03-01`)
+      .then(r => r.json())
+      .then(data => {
+        setVegResult(data);
+        updateState({ satellite: { ...(state.satellite || { fires: null }), vegetation: data } });
+
+        // Show popup on map
+        if (mapRef.current && popupRef.current) popupRef.current.remove();
+        if (mapRef.current) {
+          const popup = new mapboxgl.Popup({ offset: 10, className: 'hestia-popup' })
+            .setLngLat([clickedPoint.lon, clickedPoint.lat])
+            .setHTML(`<div style="font-family:monospace;font-size:10px;line-height:1.6;">
+              <strong>Vegetation Analysis</strong><br/>
+              NDVI: ${data.pre_ndvi} → ${data.post_ndvi}<br/>
+              dNBR: ${data.dnbr} (${data.burn_severity})<br/>
+              <span style="opacity:0.5">${data.source === 'demo_fallback' ? 'Demo data' : 'Sentinel-2 L2A'}</span>
+            </div>`)
+            .addTo(mapRef.current);
+          popupRef.current = popup;
+        }
+      })
+      .catch(() => {})
+      .finally(() => setVegLoading(false));
+  }, [clickedPoint]);
+
+  // Fetch fires + add markers
+  const fetchFires = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/hestia/satellite/fires?bbox=-122,37,-118,41&days=7');
@@ -64,112 +122,163 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
       setFires(data);
       updateState({ satellite: { fires: data, vegetation: state.satellite?.vegetation || null } });
 
-      // Add fire markers to map
       if (mapRef.current && data.fires) {
-        // Remove existing markers
         document.querySelectorAll('.fire-marker').forEach(el => el.remove());
-
-        data.fires.forEach((f: { latitude: number; longitude: number; brightness: number }) => {
+        data.fires.forEach((f: Fire) => {
           const el = document.createElement('div');
           el.className = 'fire-marker';
-          el.style.cssText = `width:16px;height:16px;border-radius:50%;background:rgba(239,68,68,0.8);box-shadow:0 0 12px rgba(239,68,68,0.6),0 0 24px rgba(239,68,68,0.3);animation:pulse 2s infinite;`;
-          new mapboxgl.Marker(el).setLngLat([f.longitude, f.latitude]).addTo(mapRef.current!);
-        });
+          el.style.cssText = 'width:16px;height:16px;border-radius:50%;background:rgba(239,68,68,0.8);box-shadow:0 0 12px rgba(239,68,68,0.6);cursor:pointer;';
 
-        // Also add Tahoe Donner site marker
-        const siteEl = document.createElement('div');
-        siteEl.style.cssText = `width:12px;height:12px;border-radius:50%;background:#FB923C;border:2px solid white;box-shadow:0 0 8px rgba(251,146,60,0.5);`;
-        new mapboxgl.Marker(siteEl).setLngLat([-120.2346, 39.3406]).addTo(mapRef.current);
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat([f.longitude, f.latitude])
+            .setPopup(new mapboxgl.Popup({ offset: 10, className: 'hestia-popup' }).setHTML(
+              `<div style="font-family:monospace;font-size:10px;line-height:1.6;">
+                <strong style="color:#ef4444;">🔥 Active Fire</strong><br/>
+                ${f.latitude.toFixed(4)}°N, ${Math.abs(f.longitude).toFixed(4)}°W<br/>
+                Brightness: ${f.brightness}K<br/>
+                Confidence: ${f.confidence}<br/>
+                FRP: ${f.frp} MW<br/>
+                ${f.acq_date} ${f.acq_time || ''}
+              </div>`
+            ))
+            .addTo(mapRef.current!);
+        });
       }
     } catch { /* fallback handled by API */ }
     setLoading(false);
+  }, [state.satellite, updateState]);
+
+  const flyToTahoe = () => {
+    rotatingRef.current = false;
+    mapRef.current?.flyTo({ center: [-120.2346, 39.3406], zoom: 14, pitch: 60, bearing: 20, duration: 3000 });
+  };
+
+  const switchStyle = (style: 'satellite' | 'terrain' | 'dark') => {
+    const styles = { satellite: 'mapbox://styles/mapbox/satellite-streets-v12', terrain: 'mapbox://styles/mapbox/outdoors-v12', dark: 'mapbox://styles/mapbox/dark-v11' };
+    mapRef.current?.setStyle(styles[style]);
+    setActiveStyle(style);
   };
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
-      {/* Mapbox satellite map — full background */}
+      {/* Full-screen Mapbox */}
       <div className="absolute inset-0 z-0">
         <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
-        {/* Vignette overlay for readability */}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(180deg, rgba(8,12,20,0.7) 0%, rgba(8,12,20,0.3) 40%, rgba(8,12,20,0.5) 70%, rgba(8,12,20,0.85) 100%)',
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'linear-gradient(180deg, rgba(8,12,20,0.6) 0%, rgba(8,12,20,0.1) 30%, rgba(8,12,20,0.1) 60%, rgba(8,12,20,0.7) 100%)',
         }} />
       </div>
 
-      {/* Pulse keyframe for fire markers */}
       <style jsx global>{`
-        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.5); opacity: 0.4; } }
         .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { display: none !important; }
+        .hestia-popup .mapboxgl-popup-content { background: rgba(12,10,9,0.92); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; backdrop-filter: blur(12px); }
+        .hestia-popup .mapboxgl-popup-tip { border-top-color: rgba(12,10,9,0.92); }
+        .fire-marker { animation: fire-pulse 2s ease-in-out infinite; }
+        @keyframes fire-pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.4); opacity: 0.5; } }
       `}</style>
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-8 py-16" style={{ minHeight: 'calc(100vh - 56px)' }}>
+      {/* Map controls — top left */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+        {/* Fire count badge */}
+        {fires && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg backdrop-blur-md" style={{ background: 'rgba(12,10,9,0.8)', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse motion-reduce:animate-none" />
+            <span className="text-red-400 text-xs font-mono font-semibold">{fires.count} fires detected</span>
+          </div>
+        )}
 
-        {/* Narrative intro */}
-        <div className="text-center mb-12 max-w-2xl animate-fade-in">
-          <p className="text-blue-400/60 text-[11px] tracking-[0.2em] uppercase mb-4" style={{ fontFamily: 'var(--font-mono)' }}>
-            Step 1 of 8 · Satellite Reconnaissance
-          </p>
-          <h1 className="text-white mb-5" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 200, letterSpacing: '-0.04em', lineHeight: 1.05 }}>
-            The Landscape
-          </h1>
-          <p className="text-white/60 text-[15px] leading-[1.65]">
-            You're looking at the Sierra Nevada from space. Scan for active fire detections from NASA FIRMS. The orange marker is Tahoe Donner — the site we'll protect.
-          </p>
+        {/* Layer toggles */}
+        <div className="flex gap-1 p-1 rounded-lg backdrop-blur-md" style={{ background: 'rgba(12,10,9,0.8)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {(['satellite', 'terrain', 'dark'] as const).map(style => (
+            <button key={style} onClick={() => switchStyle(style)}
+              className="px-2.5 py-1.5 rounded-md text-[10px] font-medium capitalize transition-all"
+              style={{
+                background: activeStyle === style ? 'rgba(255,255,255,0.12)' : 'transparent',
+                color: activeStyle === style ? 'white' : 'rgba(255,255,255,0.4)',
+              }}>
+              {style}
+            </button>
+          ))}
         </div>
 
-        {/* Fire detection panel — floats over the map */}
-        <div className="w-full max-w-3xl animate-fade-in stagger-2">
-          <div className="rounded-xl overflow-hidden backdrop-blur-md" style={{ background: 'rgba(8,12,20,0.75)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={14} className="text-red-400" />
-                <span className="text-white/85 text-[13px] font-semibold">NASA FIRMS Active Fire Detection</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}>
-                  {fires?.source === 'demo_fallback' ? 'DEMO' : fires ? 'LIVE' : 'READY'}
-                </span>
-              </div>
-              <button onClick={fetchFires} disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all"
-                style={{ color: '#FB923C', background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.25)' }}>
-                <RefreshCw size={12} className={loading ? 'animate-spin motion-reduce:animate-none' : ''} />
-                {loading ? 'Scanning...' : fires ? 'Refresh' : 'Scan California'}
-              </button>
-            </div>
+        {/* Quick actions */}
+        <button onClick={flyToTahoe}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-medium backdrop-blur-md transition-all hover:bg-white/10"
+          style={{ background: 'rgba(12,10,9,0.8)', border: '1px solid rgba(255,255,255,0.08)', color: '#FB923C' }}>
+          <Navigation size={12} /> Fly to Tahoe Donner
+        </button>
 
-            {fires ? (
-              <div>
-                {fires.fires.map((f, i) => (
-                  <div key={i} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse motion-reduce:animate-none shrink-0" style={{ boxShadow: '0 0 8px rgba(239,68,68,0.4)' }} />
-                    <span className="text-white/70 text-[11px] font-mono w-44">{f.latitude.toFixed(4)}°N, {Math.abs(f.longitude).toFixed(4)}°W</span>
-                    <span className="text-red-400 text-[11px] font-mono w-16">{f.brightness}K</span>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${f.confidence === 'high' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}`}>{f.confidence}</span>
-                    <span className="text-white/30 text-[11px] font-mono">{f.frp} MW</span>
-                    <span className="text-white/20 text-[10px] font-mono ml-auto">{f.acq_date}</span>
-                  </div>
-                ))}
-                <div className="px-5 py-2.5 text-[10px] text-white/20 font-mono">
-                  {fires.count} detections · {fires.source === 'demo_fallback' ? 'Demo data' : 'NASA FIRMS VIIRS SNPP NRT'}
-                </div>
-              </div>
-            ) : (
-              <div className="px-5 py-10 text-center">
-                <MapPin size={20} className="text-white/15 mx-auto mb-2" />
-                <p className="text-white/30 text-[11px]">Click "Scan California" to detect active fires</p>
-              </div>
-            )}
+        <button onClick={fetchFires} disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-medium backdrop-blur-md transition-all hover:bg-white/10"
+          style={{ background: 'rgba(12,10,9,0.8)', border: '1px solid rgba(234,88,12,0.2)', color: '#FB923C' }}>
+          <RefreshCw size={12} className={loading ? 'animate-spin motion-reduce:animate-none' : ''} />
+          {loading ? 'Scanning...' : fires ? 'Refresh fires' : 'Scan for fires'}
+        </button>
+      </div>
+
+      {/* Click hint */}
+      {mapLoaded && !clickedPoint && (
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-lg backdrop-blur-md animate-fade-in"
+          style={{ background: 'rgba(12,10,9,0.7)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <Crosshair size={12} className="text-blue-400" />
+          <span className="text-white/40 text-[10px]">Click anywhere to analyze vegetation</span>
+        </div>
+      )}
+
+      {/* NDVI result floating card */}
+      {vegResult && clickedPoint && (
+        <div className="absolute top-4 right-4 z-20 w-64 rounded-lg backdrop-blur-md animate-fade-in"
+          style={{ background: 'rgba(12,10,9,0.85)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="px-3 py-2 text-[10px] font-semibold text-white/60 uppercase tracking-wider border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            Vegetation Analysis
+          </div>
+          <div className="p-3 space-y-2">
+            <div className="flex justify-between text-[10px]">
+              <span className="text-white/40">NDVI Before</span>
+              <span className="font-mono text-emerald-400">{vegResult.pre_ndvi}</span>
+            </div>
+            <div className="flex justify-between text-[10px]">
+              <span className="text-white/40">NDVI After</span>
+              <span className="font-mono text-orange-400">{vegResult.post_ndvi}</span>
+            </div>
+            <div className="flex justify-between text-[10px]">
+              <span className="text-white/40">dNBR</span>
+              <span className="font-mono text-amber-400">{vegResult.dnbr}</span>
+            </div>
+            <div className="flex justify-between text-[10px]">
+              <span className="text-white/40">Severity</span>
+              <span className="font-mono text-white/70">{vegResult.burn_severity}</span>
+            </div>
+            <div className="text-[9px] text-white/20 font-mono pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+              {clickedPoint.lat.toFixed(4)}°N, {Math.abs(clickedPoint.lon).toFixed(4)}°W · {vegResult.source === 'demo_fallback' ? 'Demo' : 'Sentinel-2'}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* CTA */}
-        <div className="mt-10 animate-fade-in stagger-3">
-          <p className="text-white/30 text-[11px] text-center mb-4">This landscape needs protection.</p>
-          <button onClick={() => goToStep(1)}
-            className="flex items-center gap-3 px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none backdrop-blur-sm"
-            style={{ background: 'rgba(234, 88, 12, 0.2)', border: '1px solid rgba(234, 88, 12, 0.4)' }}>
-            Register Tahoe Donner for Treatment <ArrowRight size={16} />
-          </button>
+      {/* Bottom narrative + CTA */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-8 pb-8 pt-20" style={{
+        background: 'linear-gradient(180deg, transparent 0%, rgba(8,12,20,0.9) 60%)',
+      }}>
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-blue-400/60 text-[11px] tracking-[0.2em] uppercase mb-2" style={{ fontFamily: 'var(--font-mono)' }}>
+                Step 1 of 8 · Satellite Reconnaissance
+              </p>
+              <h1 className="text-white mb-2" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 200, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                The Landscape
+              </h1>
+              <p className="text-white/40 text-[13px] max-w-lg leading-relaxed">
+                Explore the Sierra Nevada from orbit. Click the map to analyze vegetation. Scan for active fires. The orange marker is Tahoe Donner — the site we'll protect.
+              </p>
+            </div>
+            <button onClick={() => goToStep(1)}
+              className="flex items-center gap-3 px-6 py-3 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 outline-none backdrop-blur-sm shrink-0 ml-8"
+              style={{ background: 'rgba(234, 88, 12, 0.2)', border: '1px solid rgba(234, 88, 12, 0.4)' }}>
+              Register Site <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
