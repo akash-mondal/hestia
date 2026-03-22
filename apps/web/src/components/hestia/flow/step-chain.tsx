@@ -270,7 +270,7 @@ export default function StepChain({ state }: StepProps) {
 
         {/* Final message */}
         <div className="mt-12 text-center animate-fade-in stagger-5">
-          <p className="text-white/60 text-lg font-light" style={{ letterSpacing: '-0.02em' }}>
+          <p className="text-white/80 text-2xl font-extralight" style={{ letterSpacing: '-0.02em' }}>
             This is what a fire ledger looks like.
           </p>
           <div className="mt-4 flex items-center justify-center gap-4 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.15)' }}>
