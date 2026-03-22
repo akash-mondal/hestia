@@ -11,7 +11,7 @@ import { CHAPTERS, PARTNERS } from '@/lib/chapter-data';
 import { CHAPTER_ACCENTS } from '@/lib/globe-data';
 import CloudOverlay from '@/components/landing/cloud-overlay';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 const CHAPTER_HEIGHT = 100; // vh per chapter — one viewport height each
 const TOTAL_CHAPTERS = CHAPTERS.length + 1;

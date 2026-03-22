@@ -7,7 +7,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { TAGS, RISK_ORACLE_ADDRESS } from '@/lib/hestia-constants';
 import type { StepProps } from './hestia-flow';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 const SITE = {
   siteName: 'Tahoe Donner Unit 7', ownerEntity: 'Tahoe Donner Association',

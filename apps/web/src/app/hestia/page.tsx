@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { HESTIA_CHAPTERS, HESTIA_CHAPTER_ACCENTS, HESTIA_ROLES, HESTIA_PARTNERS } from '@/lib/hestia-chapter-data';
 import CloudOverlay from '@/components/landing/cloud-overlay';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 const CHAPTER_HEIGHT = 100;
 const TOTAL_CHAPTERS = HESTIA_CHAPTERS.length + 1;
