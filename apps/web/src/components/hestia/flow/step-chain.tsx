@@ -205,12 +205,12 @@ export default function StepChain({ state }: StepProps) {
             <div className="p-6">
               <div className="flex items-center justify-center gap-6 mb-4">
                 <div className="text-center">
-                  <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Before</div>
+                  <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Before</div>
                   <div className="font-mono text-lg text-white/40">{state.wrcBefore}</div>
                 </div>
                 <div className="text-white/15 text-xl">{'->'}</div>
                 <div className="text-center">
-                  <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(5,150,105,0.6)' }}>After</div>
+                  <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(5,150,105,0.6)' }}>After</div>
                   <div className="font-mono text-lg text-emerald-400 font-bold">{state.wrcAfter}</div>
                 </div>
                 {state.wrcAfter > state.wrcBefore && (
@@ -335,7 +335,7 @@ export default function StepChain({ state }: StepProps) {
           background: 'rgba(255,255,255,0.02)',
           border: '1px solid rgba(255,255,255,0.06)',
         }}>
-          <div className="text-[9px] uppercase tracking-[0.2em] mb-4" style={{ color: 'rgba(255,255,255,0.2)' }}>
+          <div className="text-[10px] uppercase tracking-[0.2em] mb-4" style={{ color: 'rgba(255,255,255,0.2)' }}>
             The Framework
           </div>
           <div className="flex items-center justify-center gap-3 text-[13px] font-medium">

@@ -30,7 +30,7 @@ export default function FlowFeed({ messages, wrcBefore, wrcAfter }: FlowFeedProp
             className="flex items-center gap-2 py-1 hover:opacity-80 transition-opacity">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-[9px] font-mono text-white/50">HCS #{msg.seq}</span>
+              <span className="text-[10px] font-mono text-white/50">Record #{msg.seq}</span>
             </div>
             <ExternalLink size={9} className="text-white/20 shrink-0" />
           </a>
@@ -38,12 +38,12 @@ export default function FlowFeed({ messages, wrcBefore, wrcAfter }: FlowFeedProp
 
         {wrcDelta > 0 && (
           <div className="pt-2 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-            <div className="text-[9px] text-white/40 mb-1">WRC Supply</div>
+            <div className="text-[10px] text-white/40 mb-1">WRC Supply</div>
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono text-white/50">{(wrcBefore / 100).toLocaleString()}</span>
               <span className="text-[11px] text-white/30">→</span>
               <span className="text-[11px] font-mono text-emerald-400 font-semibold">{(wrcAfter / 100).toLocaleString()}</span>
-              <span className="text-[9px] font-mono text-emerald-400/60">(+{(wrcDelta / 100).toFixed(1)})</span>
+              <span className="text-[10px] font-mono text-emerald-400/60">(+{(wrcDelta / 100).toFixed(1)})</span>
             </div>
           </div>
         )}

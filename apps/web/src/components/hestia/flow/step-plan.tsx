@@ -324,7 +324,7 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
                 <div className="text-[12px] font-medium mt-2" style={{ color: isActive ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)' }}>
                   {t.label}
                 </div>
-                <div className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{t.desc}</div>
+                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{t.desc}</div>
               </button>
             );
           })}
@@ -342,7 +342,7 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
                     Reset
                   </button>
                 )}
-                <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>
                   {polygonClosed ? 'Polygon closed' : polygonCoords.length < 3 ? `Click ${3 - polygonCoords.length} more points` : 'Double-click to close'}
                 </span>
               </div>
@@ -375,7 +375,7 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
                 { label: 'Environmental Clearance', value: form.envClearance ? 'Approved' : 'Pending' },
               ].map(f => (
                 <div key={f.label}>
-                  <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
+                  <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
                   <div className="text-[12px] font-mono" style={{ color: 'rgba(255,255,255,0.8)' }}>{f.value}</div>
                 </div>
               ))}

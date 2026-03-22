@@ -126,14 +126,14 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
             <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <Satellite size={14} className="text-blue-400" />
               <span className="text-white/85 text-[13px] font-semibold">Satellite Validation</span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded ml-auto" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded ml-auto" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}>
                 Sentinel-2 L2A
               </span>
             </div>
             <div className="p-5 space-y-5">
               {/* NDVI */}
               <div>
-                <div className="text-[9px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>NDVI (Vegetation Index)</div>
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>NDVI (Vegetation Index)</div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <div className="flex items-center justify-between text-[10px] mb-1">
@@ -159,7 +159,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
 
               {/* dNBR */}
               <div>
-                <div className="text-[9px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>dNBR (Burn Severity)</div>
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>dNBR (Burn Severity)</div>
                 <div className="flex items-center gap-3">
                   <span className="text-xl font-mono font-bold text-orange-400">{SAT_DATA.dNBR}</span>
                   <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Moderate severity — consistent with prescribed burn</span>
@@ -168,7 +168,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
 
               {/* FIRMS */}
               <div>
-                <div className="text-[9px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>FIRMS Active Hotspots</div>
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>FIRMS Active Hotspots</div>
                 <div className="flex items-center gap-3">
                   <span className="text-xl font-mono font-bold text-emerald-400">{SAT_DATA.firmsHotspots}</span>
                   <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>No active fire detected — burn fully contained</span>
@@ -182,7 +182,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
             <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <Zap size={14} className="text-amber-400" />
               <span className="text-white/85 text-[13px] font-semibold">6-Component Risk Score</span>
-              <span className="ml-auto text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>Adjust post-treatment values</span>
+              <span className="ml-auto text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.25)' }}>Adjust post-treatment values</span>
             </div>
             <div className="p-5 space-y-3">
               {RISK_COMPONENTS.map(c => {
@@ -207,7 +207,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                         }} />
                       </div>
                       <input
-                        type="range"
+                        type="range" aria-label="Risk component"
                         min="0"
                         max={c.max}
                         step="1"
@@ -265,7 +265,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           border: '1px solid rgba(5,150,105,0.15)',
         }}>
           <div className="p-8 text-center">
-            <div className="text-[9px] uppercase tracking-[0.2em] mb-3" style={{ color: 'rgba(5,150,105,0.6)' }}>
+            <div className="text-[10px] uppercase tracking-[0.2em] mb-3" style={{ color: 'rgba(5,150,105,0.6)' }}>
               Verified Treatment Acres = WRC Mint Amount
             </div>
             <div className="text-5xl font-mono font-bold text-emerald-400 mb-2" style={{ textShadow: '0 0 40px rgba(5,150,105,0.3)' }}>
@@ -316,7 +316,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                   background: supplyChanged ? 'rgba(5,150,105,0.06)' : 'rgba(255,255,255,0.02)',
                   border: `1px solid ${supplyChanged ? 'rgba(5,150,105,0.1)' : 'rgba(255,255,255,0.04)'}`,
                 }}>
-                  <div className="text-[9px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>WRC Total Supply</div>
+                  <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>WRC Total Supply</div>
                   <div className="font-mono text-lg">
                     <span className="text-white/50">{supplyBefore}</span>
                     <span className="text-white/20 mx-2">{'->'}</span>

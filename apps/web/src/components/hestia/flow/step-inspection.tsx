@@ -199,7 +199,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
                     { label: 'Current Risk Score', value: `${siteData.risk || 78}/100 (Extreme)` },
                   ].map(f => (
                     <div key={f.label}>
-                      <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
+                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
                       <div className="text-[12px] font-mono" style={{ color: 'rgba(255,255,255,0.8)' }}>{f.value}</div>
                     </div>
                   ))}
@@ -240,7 +240,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
                       <div className="text-[12px] font-medium" style={{ color: checklist[item.key] ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)' }}>
                         {item.label}
                       </div>
-                      <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{item.desc}</div>
+                      <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{item.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -306,7 +306,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
                     style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
                     <div>
                       <div className="text-white/70 text-[12px] font-mono">{docId.slice(-12)}</div>
-                      <div className="text-white/30 text-[9px]">Pending verification</div>
+                      <div className="text-white/30 text-[10px]">Pending verification</div>
                     </div>
                     <button onClick={() => handleApprove(docId)} disabled={approving || !docId || !allChecked}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"

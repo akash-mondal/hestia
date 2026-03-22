@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, RefreshCw, ArrowRight, AlertTriangle, Crosshair, Layers, Navigation } from 'lucide-react';
+import { RefreshCw, ArrowRight, AlertTriangle, Crosshair, Navigation } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { StepProps } from './hestia-flow';
@@ -163,7 +163,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
       {/* Full-screen Mapbox */}
       <div className="absolute inset-0 z-0">
-        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+        <div ref={mapContainerRef} aria-label="Satellite map" style={{ width: '100%', height: '100%' }} />
         <div className="absolute inset-0 pointer-events-none" style={{
           background: 'linear-gradient(180deg, rgba(8,12,20,0.6) 0%, rgba(8,12,20,0.1) 30%, rgba(8,12,20,0.1) 60%, rgba(8,12,20,0.7) 100%)',
         }} />
@@ -249,7 +249,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
               <span className="text-white/40">Severity</span>
               <span className="font-mono text-white/70">{vegResult.burn_severity}</span>
             </div>
-            <div className="text-[9px] text-white/20 font-mono pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="text-[10px] text-white/20 font-mono pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
               {clickedPoint.lat.toFixed(4)}°N, {Math.abs(clickedPoint.lon).toFixed(4)}°W · {vegResult.source === 'demo_fallback' ? 'Demo' : 'Sentinel-2'}
             </div>
           </div>

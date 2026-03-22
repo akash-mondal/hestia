@@ -148,7 +148,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                 onChange={(e) => setPremium(parseInt(e.target.value))}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                 style={{ accentColor: '#D97706' }} />
-              <div className="flex justify-between text-[9px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              <div className="flex justify-between text-[10px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 <span>$50K</span><span>$500K</span>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                 onChange={(e) => setAcreage(parseInt(e.target.value))}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                 style={{ accentColor: '#D97706' }} />
-              <div className="flex justify-between text-[9px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              <div className="flex justify-between text-[10px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 <span>100</span><span>2,000</span>
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                 onChange={(e) => setWrcBalance(parseInt(e.target.value))}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                 style={{ accentColor: '#059669' }} />
-              <div className="flex justify-between text-[9px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              <div className="flex justify-between text-[10px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 <span>0</span><span>500</span>
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                 </div>
                 <div className="flex justify-between mt-2">
                   {activeTiers.map(t => (
-                    <span key={t.name} className="text-[9px] font-mono" style={{ color: t.name === tierName ? TIER_COLORS[t.name] : 'rgba(255,255,255,0.2)' }}>
+                    <span key={t.name} className="text-[10px] font-mono" style={{ color: t.name === tierName ? TIER_COLORS[t.name] : 'rgba(255,255,255,0.2)' }}>
                       {t.name}
                     </span>
                   ))}
@@ -235,7 +235,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                         border: `1px solid ${isActive ? `${color}40` : 'rgba(255,255,255,0.04)'}`,
                       }}>
                       {isActive && (
-                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-medium px-1.5 py-0.5 rounded-full"
+                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-medium px-1.5 py-0.5 rounded-full"
                           style={{ background: `${color}20`, color, border: `1px solid ${color}40` }}>
                           Current
                         </div>
@@ -244,7 +244,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                       <div className="text-[10px] font-medium" style={{ color: isActive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)' }}>
                         {t.name}
                       </div>
-                      <div className="text-[8px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                      <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>
                         {t.minWrc}+ WRC
                       </div>
                     </div>
@@ -278,7 +278,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="px-6 pb-4 flex items-center justify-center gap-4 text-[9px]">
+            <div className="px-6 pb-4 flex items-center justify-center gap-4 text-[10px]">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded" style={{ background: '#DC2626' }} /> Full Premium</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded" style={{ background: '#D97706' }} /> Discounted</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded" style={{ background: '#059669' }} /> Savings</span>
@@ -295,17 +295,17 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
           <div className="p-8 text-center">
             <div className="flex items-center justify-center gap-4 text-xl font-mono">
               <div>
-                <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Annual Premium</div>
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Annual Premium</div>
                 <span className="text-white/70">${premium.toLocaleString()}</span>
               </div>
               <span className="text-white/20 text-2xl">x</span>
               <div>
-                <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Discount</div>
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Discount</div>
                 <span className="text-amber-400">{discountPct}%</span>
               </div>
               <span className="text-white/20 text-2xl">=</span>
               <div>
-                <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(5,150,105,0.6)' }}>Saved / Year</div>
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(5,150,105,0.6)' }}>Saved / Year</div>
                 <span className="text-emerald-400 font-bold text-2xl">${savings.toLocaleString()}</span>
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
                 If 5+ FIRMS hotspots detected within the treatment boundary — automatic <span className="text-orange-400 font-mono font-medium">$2.5M</span> payout.
                 No claims process. No adjuster. Satellite data triggers the smart contract directly.
               </p>
-              <div className="mt-2 flex items-center gap-3 text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              <div className="mt-2 flex items-center gap-3 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 <span>Oracle: FIRMS VIIRS</span>
                 <span>|</span>
                 <span>Threshold: 5 hotspots</span>
@@ -351,7 +351,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
               ].map((item, i) => (
                 <div key={item.label} className="flex-1 flex items-center gap-3">
                   <div className="flex-1 rounded-lg p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: item.color }}>{item.label}</div>
+                    <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: item.color }}>{item.label}</div>
                     <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{item.desc}</div>
                     <div className="text-[12px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>{item.value}</div>
                   </div>

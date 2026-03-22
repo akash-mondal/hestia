@@ -37,7 +37,7 @@ export default function FlowNav({ steps, currentStep, onStepClick }: FlowNavProp
                   border: isCurrent ? '1px solid rgba(234, 88, 12, 0.25)' : '1px solid transparent',
                 }}
               >
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold"
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
                   style={{
                     background: isComplete ? '#059669' : isCurrent ? '#FB923C' : 'rgba(255,255,255,0.08)',
                     color: isComplete || isCurrent ? 'white' : 'rgba(255,255,255,0.3)',
@@ -55,7 +55,7 @@ export default function FlowNav({ steps, currentStep, onStepClick }: FlowNavProp
         })}
       </div>
 
-      <div className="flex items-center gap-1.5 text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+      <div className="flex items-center gap-1.5 text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse motion-reduce:animate-none" />
         Hedera Testnet
       </div>

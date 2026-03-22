@@ -127,7 +127,7 @@ export default function StepCommunity({ state, updateState, goToStep, pollHcs }:
                   <label className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Fire Risk Score</label>
                   <span className="text-[11px] font-mono font-semibold" style={{ color: riskColor }}>{form.risk} — {riskLabel}</span>
                 </div>
-                <input type="range" min="0" max="100" value={form.risk} onChange={e => updateField('risk', Number(e.target.value))}
+                <input type="range" min="0" max="100" aria-label="Fire risk score" value={form.risk} onChange={e => updateField('risk', Number(e.target.value))}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer"
                   style={{ background: 'linear-gradient(90deg, #059669 0%, #D97706 33%, #EA580C 66%, #DC2626 100%)' }} />
               </div>
@@ -160,8 +160,8 @@ export default function StepCommunity({ state, updateState, goToStep, pollHcs }:
 
           {/* Map */}
           <div className="lg:col-span-2 rounded-xl overflow-hidden relative animate-fade-in stagger-2" style={{ border: '1px solid rgba(255,255,255,0.06)', minHeight: '400px' }}>
-            <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '400px' }} />
-            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded text-[9px] backdrop-blur-md"
+            <div ref={mapContainerRef} aria-label="Satellite map" style={{ width: '100%', height: '100%', minHeight: '400px' }} />
+            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded text-[10px] backdrop-blur-md"
               style={{ background: 'rgba(12,10,9,0.7)', color: 'rgba(255,255,255,0.4)' }}>
               <Crosshair size={10} /> Click to set coordinates
             </div>

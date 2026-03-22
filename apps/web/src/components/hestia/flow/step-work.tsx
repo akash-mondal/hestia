@@ -166,7 +166,7 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
                   accentColor: '#059669',
                 }}
               />
-              <div className="flex justify-between text-[9px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              <div className="flex justify-between text-[10px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 <span>1.0 tons/acre</span>
                 <span>18.5 tons/acre</span>
               </div>
@@ -187,7 +187,7 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
               <h3 className="text-white/80 text-sm font-medium">Cinderard Ground Temperature Monitor</h3>
               <p className="text-white/30 text-[10px] mt-0.5">6x6 sensor grid — 48-hour post-burn check. Hover for exact temperature.</p>
             </div>
-            <div className="flex items-center gap-3 text-[9px]">
+            <div className="flex items-center gap-3 text-[10px]">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#059669' }} /> &lt;100°F</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#D97706' }} /> 100-150°F</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#DC2626' }} /> &gt;150°F</span>
@@ -209,7 +209,7 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
                       {temp}°F
                     </div>
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono" style={{ color: getTempColor(temp) }}>
+                  <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono" style={{ color: getTempColor(temp) }}>
                     {temp}
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
               { label: 'Completion', value: '98.75%' },
             ].map(f => (
               <div key={f.label}>
-                <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
                 <div className="text-[12px] font-mono" style={{ color: 'rgba(255,255,255,0.8)' }}>{f.value}</div>
               </div>
             ))}
