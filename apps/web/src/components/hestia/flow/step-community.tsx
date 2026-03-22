@@ -9,8 +9,9 @@ export default function StepCommunity({ state, updateState, goToStep, pollHcs }:
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(!!state.site);
 
+  const [siteId] = useState(() => 'TD-DEMO-' + Date.now().toString(36).slice(-4));
   const form = {
-    siteId: 'TD-DEMO-' + Date.now().toString(36).slice(-4),
+    siteId,
     siteName: 'Tahoe Donner Unit 7',
     ownerEntity: 'Tahoe Donner Association',
     state: 'California', county: 'Nevada County',

@@ -28,8 +28,9 @@ export default function FlowNav({ steps, currentStep, onStepClick }: FlowNavProp
           return (
             <div key={step.id} className="flex items-center">
               <button
-                onClick={() => isClickable ? onStepClick(i) : null}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-medium transition-all ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+                onClick={() => onStepClick(i)}
+                disabled={!isClickable}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-medium transition-all disabled:cursor-default disabled:opacity-50"
                 style={{
                   color: isCurrent ? '#FB923C' : isComplete ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)',
                   background: isCurrent ? 'rgba(234, 88, 12, 0.12)' : 'transparent',

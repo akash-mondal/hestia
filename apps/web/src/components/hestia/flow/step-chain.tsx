@@ -262,7 +262,7 @@ export default function StepChain({ state }: StepProps) {
             ].map((item, i) => (
               <div key={item.label} className="flex items-center gap-3">
                 <span style={{ color: item.color }}>{item.label}</span>
-                {i < 3 && <span className="text-white/10">{'-->'}</span>}
+                {i < 3 && <span className="text-white/10">→</span>}
               </div>
             ))}
           </div>

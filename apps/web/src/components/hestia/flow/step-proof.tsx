@@ -35,21 +35,24 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           tag: TAGS.RISK_INTAKE,
           role: 'satellite',
           data: {
-            field0: 'RA-' + Date.now().toString(36).slice(-4),
-            field1: 'TD-001',
-            field2: SAT_DATA.ndviBefore,
-            field3: SAT_DATA.ndviAfter,
-            field4: SAT_DATA.dNBR,
-            field5: SAT_DATA.firmsHotspots,
-            field6: RISK_BEFORE.fuel, field7: RISK_AFTER.fuel,
-            field8: RISK_BEFORE.slope, field9: RISK_AFTER.slope,
-            field10: RISK_BEFORE.wui, field11: RISK_AFTER.wui,
-            field12: RISK_BEFORE.access, field13: RISK_AFTER.access,
-            field14: RISK_BEFORE.historical, field15: RISK_AFTER.historical,
-            field16: RISK_BEFORE.weather, field17: 'mint_wrc',
-            field18: TOTAL_PRE,
-            field19: TOTAL_POST,
-            field20: VERIFIED_ACRES,
+            field0: 'RA-' + Date.now().toString(36).slice(-6),  // assessmentId
+            field1: 'TD-001',                                    // siteId
+            field2: new Date().toISOString(),                    // assessedAt
+            field3: TOTAL_PRE,                                   // preFireRiskScore
+            field4: TOTAL_POST,                                  // postFireRiskScore
+            field5: Math.round((1 - TOTAL_POST / TOTAL_PRE) * 1000) / 10, // riskReductionPercent
+            field6: SAT_DATA.ndviBefore,                         // ndviPreTreatment
+            field7: SAT_DATA.ndviAfter,                          // ndviPostTreatment
+            field8: SAT_DATA.dNBR,                               // nbrDelta
+            field9: SAT_DATA.firmsHotspots,                      // firmsHotspotCount
+            field10: RISK_BEFORE.weather / 20,                   // weatherRiskFactor (0-1)
+            field11: RISK_BEFORE.slope / 15,                     // slopeRiskFactor (0-1)
+            field12: RISK_BEFORE.wui / 20,                       // wuiDensityFactor (0-1)
+            field13: VERIFIED_ACRES,                             // verifiedAcres = WRC MINT AMOUNT
+            field14: 'FIRMS,Sentinel-2,LANDFIRE,NOAA',           // dataSourcesUsed
+            field15: new Date().toISOString().split('T')[0],     // sentinelTileDate
+            field16: true,                                       // overallCompliant
+            field17: 'mint_wrc',                                 // tokenAction → TRIGGERS MINTING
           },
         }),
       });
@@ -175,7 +178,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                       <span style={{ color: 'rgba(255,255,255,0.5)' }}>{c.label}</span>
                       <div className="font-mono">
                         <span className="text-red-400">{pre}</span>
-                        {changed && <><span className="text-white/20 mx-1">{'->'}</span><span className="text-emerald-400">{post}</span></>}
+                        {changed && <><span className="text-white/20 mx-1">→</span><span className="text-emerald-400">{post}</span></>}
                         <span className="text-white/15 ml-1">/{c.max}</span>
                       </div>
                     </div>
@@ -194,7 +197,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                 <span className="text-white/60 text-[11px] font-medium">Total Risk Score</span>
                 <div className="font-mono text-lg">
                   <span className="text-red-400 font-bold">{TOTAL_PRE}</span>
-                  <span className="text-white/20 mx-2">{'->'}</span>
+                  <span className="text-white/20 mx-2">→</span>
                   <span className="text-emerald-400 font-bold">{TOTAL_POST}</span>
                   <span className="text-emerald-400/50 text-[11px] ml-2">(-{Math.round((1 - TOTAL_POST / TOTAL_PRE) * 100)}%)</span>
                 </div>
@@ -252,7 +255,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                   <div className="text-[9px] uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>WRC Total Supply</div>
                   <div className="font-mono text-lg">
                     <span className="text-white/50">{supplyBefore}</span>
-                    <span className="text-white/20 mx-2">{'->'}</span>
+                    <span className="text-white/20 mx-2">→</span>
                     <span className="text-emerald-400 font-bold">{supplyAfter}</span>
                     {supplyChanged && (
                       <span className="text-emerald-400/70 text-sm ml-2">(+{supplyAfter - supplyBefore})</span>

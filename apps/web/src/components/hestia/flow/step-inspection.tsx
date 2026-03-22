@@ -6,9 +6,14 @@ import { TAGS, HASHSCAN_BASE, INSTANCE_TOPIC_ID } from '@/lib/hestia-constants';
 import type { StepProps } from './hestia-flow';
 
 interface PendingSite {
-  _id: string;
+  _id?: string;
+  id?: string;
   document?: Record<string, unknown>;
   [key: string]: unknown;
+}
+
+function getDocId(site: PendingSite): string {
+  return String(site._id ?? site.id ?? '');
 }
 
 export default function StepInspection({ state, updateState, goToStep, pollHcs }: StepProps) {
@@ -155,21 +160,24 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
               </div>
             ) : (
               <div className="space-y-3">
-                {sites.map((site) => (
-                  <div key={site._id} className="flex items-center justify-between px-4 py-3 rounded-lg"
+                {sites.map((site) => {
+                  const docId = getDocId(site);
+                  return (
+                  <div key={docId} className="flex items-center justify-between px-4 py-3 rounded-lg"
                     style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
                     <div>
-                      <div className="text-white/70 text-[12px] font-mono">{site._id.slice(-8)}</div>
+                      <div className="text-white/70 text-[12px] font-mono">{docId.slice(-12)}</div>
                       <div className="text-white/30 text-[9px]">Pending verification</div>
                     </div>
-                    <button onClick={() => handleApprove(site._id)} disabled={approving}
+                    <button onClick={() => handleApprove(docId)} disabled={approving || !docId}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
                       style={{ background: '#059669' }}>
                       {approving ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
                       {approving ? 'Approving...' : 'APPROVE'}
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
