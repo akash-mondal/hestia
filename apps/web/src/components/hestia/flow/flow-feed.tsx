@@ -13,7 +13,7 @@ export default function FlowFeed({ messages, wrcBefore, wrcAfter }: FlowFeedProp
   const wrcDelta = wrcAfter - wrcBefore;
 
   return (
-    <div className="fixed right-4 top-16 z-40 w-64 animate-fade-in" style={{
+    <div className="fixed right-4 top-16 z-40 w-64 hidden lg:block animate-fade-in" style={{
       background: 'rgba(12, 10, 9, 0.92)',
       backdropFilter: 'blur(16px)',
       border: '1px solid rgba(255,255,255,0.06)',

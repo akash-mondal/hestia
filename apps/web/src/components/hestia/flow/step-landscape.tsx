@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Flame, MapPin, RefreshCw, ArrowRight, AlertTriangle } from 'lucide-react';
+import { MapPin, RefreshCw, ArrowRight, AlertTriangle } from 'lucide-react';
 import type { StepProps } from './hestia-flow';
 
 export default function StepLandscape({ state, updateState, goToStep }: StepProps) {
@@ -92,7 +92,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
           <button onClick={() => goToStep(1)}
             className="flex items-center gap-3 px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
             style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
-            Register a Treatment Site <ArrowRight size={16} />
+            Register Tahoe Donner for Treatment <ArrowRight size={16} />
           </button>
         </div>
       </div>

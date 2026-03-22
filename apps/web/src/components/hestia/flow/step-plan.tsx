@@ -173,7 +173,7 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
             <p className="text-white/30 text-[10px] mt-0.5">Pre-filled with CAL FIRE RX standards. Creates a Verifiable Credential on Hedera.</p>
           </div>
 
-          <div className="p-6 grid grid-cols-3 gap-4">
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               { label: 'Plan ID', value: form.planId },
               { label: 'Site ID', value: form.siteId },

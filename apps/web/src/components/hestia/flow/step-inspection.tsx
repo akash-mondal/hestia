@@ -98,7 +98,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
               <MapPin size={14} className="text-orange-400" />
               <h3 className="text-white/80 text-sm font-medium">Registered Site — Under Review</h3>
             </div>
-            <div className="p-6 grid grid-cols-3 gap-4">
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[
                 { label: 'Site Name', value: String(siteData.siteName || 'Tahoe Donner Unit 7') },
                 { label: 'Owner', value: String(siteData.ownerEntity || 'Tahoe Donner Association') },
@@ -144,7 +144,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
             ) : loading ? (
               <div className="flex items-center justify-center gap-2 py-8">
                 <Loader2 size={16} className="text-white/30 animate-spin motion-reduce:animate-none" />
-                <span className="text-white/30 text-[11px]">Fetching pending sites from Guardian...</span>
+                <span className="text-white/30 text-[11px]">Loading site registration for review...</span>
               </div>
             ) : fetchError ? (
               <div className="text-center py-8">

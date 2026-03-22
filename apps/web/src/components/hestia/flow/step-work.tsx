@@ -168,7 +168,7 @@ export default function StepWork({ state, updateState, goToStep, pollHcs }: Step
             <p className="text-white/30 text-[10px] mt-0.5">Creates a Verifiable Credential with treatment outcomes on Hedera.</p>
           </div>
 
-          <div className="p-6 grid grid-cols-3 gap-4">
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               { label: 'Report ID', value: form.reportId },
               { label: 'Plan ID', value: String(form.planId) },

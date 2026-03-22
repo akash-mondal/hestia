@@ -104,7 +104,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
         </div>
 
         {/* Split layout */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Left: Satellite data */}
           <div className="rounded-xl overflow-hidden animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -279,7 +279,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                 ) : (
                   <>
                     <Zap size={20} />
-                    MINT {VERIFIED_ACRES} WRC
+                    Mint {VERIFIED_ACRES} WRC on Hedera
                   </>
                 )}
               </button>

@@ -76,7 +76,7 @@ export default function StepCommunity({ state, updateState, goToStep, pollHcs }:
             <p className="text-white/30 text-[10px] mt-0.5">Pre-filled with real Tahoe Donner HOA data. This will create a Verifiable Credential on Hedera.</p>
           </div>
 
-          <div className="p-6 grid grid-cols-3 gap-4">
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               { label: 'Site Name', value: form.siteName },
               { label: 'Owner', value: form.ownerEntity },
