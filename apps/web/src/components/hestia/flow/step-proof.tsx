@@ -238,9 +238,20 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           <div className="p-6">
             {success ? (
               <div className="space-y-4">
+                {/* Celebration header */}
+                <div className="text-center py-6 rounded-xl" style={{
+                  background: 'linear-gradient(135deg, rgba(5,150,105,0.12), rgba(52,211,153,0.06))',
+                  border: '1px solid rgba(5,150,105,0.2)',
+                  boxShadow: '0 0 60px rgba(5,150,105,0.08)',
+                }}>
+                  <CheckCircle2 size={32} className="text-emerald-400 mx-auto mb-3" />
+                  <div className="text-emerald-400 text-xl font-semibold mb-1">{VERIFIED_ACRES} WRC Minted</div>
+                  <div className="text-white/40 text-[12px]">Wildfire Resilience Credits now live on Hedera</div>
+                </div>
+
                 <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.15)' }}>
                   <CheckCircle2 size={16} className="text-emerald-400" />
-                  <span className="text-emerald-400 text-[12px] font-medium">Risk assessment recorded + WRC minted on Hedera</span>
+                  <span className="text-emerald-400 text-[12px] font-medium">Verified on Hedera Consensus Service</span>
                   <a href={state.assessment?.hashScanLink || `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`} target="_blank" rel="noopener noreferrer"
                     className="ml-auto flex items-center gap-1 text-[10px] font-mono text-orange-400/70 hover:text-orange-400">
                     View on HashScan <ExternalLink size={10} />
