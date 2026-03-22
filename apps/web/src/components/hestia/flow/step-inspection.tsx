@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ShieldCheck, ArrowRight, Loader2, CheckCircle2, ExternalLink, MapPin, AlertTriangle } from 'lucide-react';
 import { TAGS, HASHSCAN_BASE, INSTANCE_TOPIC_ID } from '@/lib/hestia-constants';
 import type { StepProps } from './hestia-flow';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYWthc2gxZWtlIiwiYSI6ImNtbXhjNDJ0cTJvNzUycXIwYmV0cmR2dGcifQ.Nzhna6_Lyaesv5cLBg0qsQ';
 
 interface PendingSite {
   _id?: string;
@@ -16,16 +20,73 @@ function getDocId(site: PendingSite): string {
   return String(site._id ?? site.id ?? '');
 }
 
+interface VerificationChecklist {
+  gps: boolean;
+  acreage: boolean;
+  wui: boolean;
+  vegetation: boolean;
+}
+
 export default function StepInspection({ state, updateState, goToStep, pollHcs }: StepProps) {
   const [sites, setSites] = useState<PendingSite[]>([]);
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState(false);
   const [success, setSuccess] = useState(!!state.siteApproval);
   const [fetchError, setFetchError] = useState('');
+  const [checklist, setChecklist] = useState<VerificationChecklist>({ gps: false, acreage: false, wui: false, vegetation: false });
+  const [ndvi, setNdvi] = useState<{ value: number; date: string } | null>(null);
+  const [ndviLoading, setNdviLoading] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
+  const siteData = state.site?.data;
+  const siteLat = Number(siteData?.lat || 39.3406);
+  const siteLon = Number(siteData?.lon || -120.2346);
+
+  const allChecked = checklist.gps && checklist.acreage && checklist.wui && checklist.vegetation;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!state.siteApproval) fetchPendingSites();
   }, []);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      center: [siteLon, siteLat],
+      zoom: 13,
+      attributionControl: false,
+    });
+    new mapboxgl.Marker({ color: '#EA580C' })
+      .setLngLat([siteLon, siteLat])
+      .addTo(map);
+    mapRef.current = map;
+    return () => { map.remove(); mapRef.current = null; };
+  }, [siteLat, siteLon]);
+
+  // Fetch NDVI
+  useEffect(() => {
+    const fetchNdvi = async () => {
+      setNdviLoading(true);
+      try {
+        const res = await fetch(`/api/hestia/satellite/ndvi?lat=${siteLat}&lon=${siteLon}`);
+        if (res.ok) {
+          const data = await res.json();
+          setNdvi({ value: data.ndvi ?? data.mean_ndvi ?? 0.72, date: data.date ?? new Date().toISOString().split('T')[0] });
+        } else {
+          setNdvi({ value: 0.72, date: new Date().toISOString().split('T')[0] });
+        }
+      } catch {
+        setNdvi({ value: 0.72, date: new Date().toISOString().split('T')[0] });
+      }
+      setNdviLoading(false);
+    };
+    fetchNdvi();
+  }, [siteLat, siteLon]);
 
   const fetchPendingSites = async () => {
     setLoading(true);
@@ -67,13 +128,15 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
     setApproving(false);
   };
 
-  const siteData = state.site?.data;
+  const toggleCheck = useCallback((key: keyof VerificationChecklist) => {
+    setChecklist(prev => ({ ...prev, [key]: !prev[key] }));
+  }, []);
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #090A10 0%, #131528 50%, #090A10 100%)' }} />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-8 py-16">
+      <div className="relative z-10 max-w-6xl mx-auto px-8 py-16">
         {/* Narrative */}
         <div className="mb-10 animate-fade-in">
           <p className="text-indigo-400/60 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
@@ -91,30 +154,100 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
           </div>
         </div>
 
-        {/* Site details from previous step */}
-        {siteData && (
-          <div className="rounded-xl overflow-hidden mb-6 animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* Two-column layout: Map + Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Left: Satellite map */}
+          <div className="rounded-xl overflow-hidden animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
               <MapPin size={14} className="text-orange-400" />
-              <h3 className="text-white/80 text-sm font-medium">Registered Site — Under Review</h3>
+              <h3 className="text-white/80 text-sm font-medium">Site Location — Satellite View</h3>
             </div>
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                { label: 'Site Name', value: String(siteData.siteName || 'Tahoe Donner Unit 7') },
-                { label: 'Owner', value: String(siteData.ownerEntity || 'Tahoe Donner Association') },
-                { label: 'Location', value: `${siteData.lat || 39.3406}°N, ${Math.abs(Number(siteData.lon || -120.2346))}°W` },
-                { label: 'Acreage', value: `${siteData.acres || 640} acres` },
-                { label: 'Structures at Risk', value: `${siteData.wui || 187} homes` },
-                { label: 'Current Risk Score', value: `${siteData.risk || 78}/100 (Extreme)` },
-              ].map(f => (
-                <div key={f.label}>
-                  <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
-                  <div className="text-[12px] font-mono" style={{ color: 'rgba(255,255,255,0.8)' }}>{f.value}</div>
+            <div ref={mapContainerRef} style={{ height: 320, width: '100%' }} />
+            <div className="p-4 flex items-center justify-between">
+              <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                {siteLat.toFixed(4)}°N, {Math.abs(siteLon).toFixed(4)}°W
+              </span>
+              {ndviLoading ? (
+                <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <Loader2 size={10} className="inline animate-spin mr-1" />Loading NDVI...
+                </span>
+              ) : ndvi ? (
+                <div className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  NDVI: <span className="text-emerald-400 font-bold">{ndvi.value.toFixed(2)}</span>
+                  <span className="text-white/20 ml-2">({ndvi.date})</span>
                 </div>
-              ))}
+              ) : null}
             </div>
           </div>
-        )}
+
+          {/* Right: Site details + NDVI */}
+          <div className="space-y-6">
+            {/* Site details from previous step */}
+            {siteData && (
+              <div className="rounded-xl overflow-hidden animate-fade-in stagger-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <MapPin size={14} className="text-orange-400" />
+                  <h3 className="text-white/80 text-sm font-medium">Registered Site — Under Review</h3>
+                </div>
+                <div className="p-6 grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Site Name', value: String(siteData.siteName || 'Tahoe Donner Unit 7') },
+                    { label: 'Owner', value: String(siteData.ownerEntity || 'Tahoe Donner Association') },
+                    { label: 'Location', value: `${siteData.lat || 39.3406}°N, ${Math.abs(Number(siteData.lon || -120.2346))}°W` },
+                    { label: 'Acreage', value: `${siteData.acres || 640} acres` },
+                    { label: 'Structures at Risk', value: `${siteData.wui || 187} homes` },
+                    { label: 'Current Risk Score', value: `${siteData.risk || 78}/100 (Extreme)` },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{f.label}</div>
+                      <div className="text-[12px] font-mono" style={{ color: 'rgba(255,255,255,0.8)' }}>{f.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Verification Checklist */}
+            <div className="rounded-xl overflow-hidden animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <ShieldCheck size={14} className="text-indigo-400" />
+                <h3 className="text-white/80 text-sm font-medium">Verification Checklist</h3>
+                <span className="ml-auto text-[10px] font-mono" style={{ color: allChecked ? '#059669' : 'rgba(255,255,255,0.25)' }}>
+                  {Object.values(checklist).filter(Boolean).length}/4 verified
+                </span>
+              </div>
+              <div className="p-6 space-y-3">
+                {([
+                  { key: 'gps' as const, label: 'GPS Verified', desc: 'Coordinates match registered location within 50m tolerance' },
+                  { key: 'acreage' as const, label: 'Acreage Confirmed', desc: 'Parcel boundaries match declared 640 acres' },
+                  { key: 'wui' as const, label: 'WUI Count Verified', desc: '187 structures confirmed within Wildland-Urban Interface zone' },
+                  { key: 'vegetation' as const, label: 'Vegetation Check', desc: 'Mixed conifer stand, fuel loading consistent with 18.5 tons/acre' },
+                ] as const).map(item => (
+                  <button key={item.key} onClick={() => !success && toggleCheck(item.key)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all"
+                    style={{
+                      background: checklist[item.key] ? 'rgba(5,150,105,0.06)' : 'rgba(255,255,255,0.02)',
+                      border: `1px solid ${checklist[item.key] ? 'rgba(5,150,105,0.15)' : 'rgba(255,255,255,0.04)'}`,
+                    }}>
+                    <div className="shrink-0 w-5 h-5 rounded flex items-center justify-center"
+                      style={{
+                        background: checklist[item.key] ? '#059669' : 'rgba(255,255,255,0.06)',
+                        border: `1px solid ${checklist[item.key] ? '#059669' : 'rgba(255,255,255,0.1)'}`,
+                      }}>
+                      {checklist[item.key] && <CheckCircle2 size={12} className="text-white" />}
+                    </div>
+                    <div>
+                      <div className="text-[12px] font-medium" style={{ color: checklist[item.key] ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)' }}>
+                        {item.label}
+                      </div>
+                      <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{item.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Pending sites / approval */}
         <div className="rounded-xl overflow-hidden animate-fade-in stagger-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -160,6 +293,12 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
               </div>
             ) : (
               <div className="space-y-3">
+                {!allChecked && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg mb-2" style={{ background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.12)' }}>
+                    <AlertTriangle size={12} className="text-amber-400/60" />
+                    <span className="text-amber-400/70 text-[10px]">Complete all verification checks above before approving</span>
+                  </div>
+                )}
                 {sites.map((site) => {
                   const docId = getDocId(site);
                   return (
@@ -169,9 +308,9 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
                       <div className="text-white/70 text-[12px] font-mono">{docId.slice(-12)}</div>
                       <div className="text-white/30 text-[9px]">Pending verification</div>
                     </div>
-                    <button onClick={() => handleApprove(docId)} disabled={approving || !docId}
+                    <button onClick={() => handleApprove(docId)} disabled={approving || !docId || !allChecked}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
-                      style={{ background: '#059669' }}>
+                      style={{ background: allChecked ? '#059669' : 'rgba(255,255,255,0.1)' }}>
                       {approving ? <Loader2 size={14} className="animate-spin motion-reduce:animate-none" /> : <ShieldCheck size={14} />}
                       {approving ? 'Approving...' : 'APPROVE'}
                     </button>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { ExternalLink, ChevronDown, ChevronUp, Copy, CheckCircle2, Coins, ShieldCheck, Flame, TreePine, MapPin, Satellite, DollarSign } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { ExternalLink, ChevronDown, ChevronUp, Copy, CheckCircle2, Coins, ShieldCheck, Flame, TreePine, MapPin, Satellite, DollarSign, Loader2 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { HASHSCAN_BASE, INSTANCE_TOPIC_ID, WRC_TOKEN_ID } from '@/lib/hestia-constants';
 import type { StepProps } from './hestia-flow';
 
@@ -14,9 +15,16 @@ interface ChainLevel {
   link?: string;
 }
 
+interface LiveData {
+  consensusTimestamp: string;
+  sequenceNumber: number;
+}
+
 export default function StepChain({ state }: StepProps) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({ 0: true });
   const [copied, setCopied] = useState(false);
+  const [liveData, setLiveData] = useState<Record<number, LiveData>>({});
+  const [liveLoading, setLiveLoading] = useState<Record<number, boolean>>({});
 
   const topicLink = `${HASHSCAN_BASE}/topic/${INSTANCE_TOPIC_ID}`;
   const tokenLink = `${HASHSCAN_BASE}/token/${WRC_TOKEN_ID}`;
@@ -121,7 +129,6 @@ export default function StepChain({ state }: StepProps) {
   ];
 
   const allLinks = chain.map(c => c.link).filter(Boolean) as string[];
-  // Deduplicate
   const uniqueLinks = [...new Set(allLinks)];
 
   const copyAllLinks = () => {
@@ -132,9 +139,41 @@ export default function StepChain({ state }: StepProps) {
     });
   };
 
+  const fetchLiveData = useCallback(async (index: number) => {
+    if (liveData[index] || liveLoading[index]) return;
+    setLiveLoading(prev => ({ ...prev, [index]: true }));
+    try {
+      const res = await fetch(`/api/mirror?path=/topics/${INSTANCE_TOPIC_ID}/messages?limit=1&order=desc`);
+      if (res.ok) {
+        const data = await res.json();
+        const msg = data.messages?.[0];
+        if (msg) {
+          setLiveData(prev => ({
+            ...prev,
+            [index]: {
+              consensusTimestamp: String(msg.consensus_timestamp),
+              sequenceNumber: Number(msg.sequence_number),
+            },
+          }));
+        }
+      }
+    } catch { /* ignore */ }
+    setLiveLoading(prev => ({ ...prev, [index]: false }));
+  }, [liveData, liveLoading]);
+
   const toggle = (i: number) => {
-    setExpanded(prev => ({ ...prev, [i]: !prev[i] }));
+    const willOpen = !expanded[i];
+    setExpanded(prev => ({ ...prev, [i]: willOpen }));
+    if (willOpen) {
+      fetchLiveData(i);
+    }
   };
+
+  // WRC supply chart data
+  const supplyChartData = [
+    { label: 'Before', supply: state.wrcBefore },
+    { label: 'After', supply: state.wrcAfter },
+  ];
 
   return (
     <div className="relative" style={{ minHeight: 'calc(100vh - 56px)' }}>
@@ -152,25 +191,48 @@ export default function StepChain({ state }: StepProps) {
           </p>
         </div>
 
-        {/* WRC supply */}
-        <div className="mb-8 text-center animate-fade-in stagger-1">
-          <div className="inline-flex items-center gap-4 px-6 py-3 rounded-xl" style={{
-            background: 'rgba(5,150,105,0.06)',
-            border: '1px solid rgba(5,150,105,0.15)',
-          }}>
-            <Coins size={18} className="text-emerald-400" />
-            <div className="text-left">
-              <div className="text-[9px] uppercase tracking-wider" style={{ color: 'rgba(5,150,105,0.6)' }}>WRC Total Supply</div>
-              <div className="font-mono text-lg">
-                <span className="text-white/40">{state.wrcBefore}</span>
-                <span className="text-white/15 mx-2">{'->'}</span>
-                <span className="text-emerald-400 font-bold">{state.wrcAfter}</span>
+        {/* WRC supply with AreaChart */}
+        <div className="mb-8 animate-fade-in stagger-1">
+          <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <Coins size={14} className="text-emerald-400" />
+              <span className="text-white/85 text-[13px] font-semibold">WRC Total Supply</span>
+              <a href={tokenLink} target="_blank" rel="noopener noreferrer"
+                className="ml-auto text-orange-400/50 hover:text-orange-400">
+                <ExternalLink size={14} />
+              </a>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-center gap-6 mb-4">
+                <div className="text-center">
+                  <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Before</div>
+                  <div className="font-mono text-lg text-white/40">{state.wrcBefore}</div>
+                </div>
+                <div className="text-white/15 text-xl">{'->'}</div>
+                <div className="text-center">
+                  <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: 'rgba(5,150,105,0.6)' }}>After</div>
+                  <div className="font-mono text-lg text-emerald-400 font-bold">{state.wrcAfter}</div>
+                </div>
+                {state.wrcAfter > state.wrcBefore && (
+                  <span className="text-emerald-400/70 text-sm font-mono">(+{state.wrcAfter - state.wrcBefore})</span>
+                )}
+              </div>
+              <div style={{ height: 120 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={supplyChartData}>
+                    <defs>
+                      <linearGradient id="supplyGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#059669" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis hide domain={['dataMin - 50', 'dataMax + 50']} />
+                    <Area type="monotone" dataKey="supply" stroke="#059669" strokeWidth={2} fill="url(#supplyGradient)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
-            <a href={tokenLink} target="_blank" rel="noopener noreferrer"
-              className="text-orange-400/50 hover:text-orange-400">
-              <ExternalLink size={14} />
-            </a>
           </div>
         </div>
 
@@ -183,6 +245,8 @@ export default function StepChain({ state }: StepProps) {
             {chain.map((level, i) => {
               const Icon = level.icon;
               const isOpen = expanded[i];
+              const live = liveData[i];
+              const isLiveLoading = liveLoading[i];
               return (
                 <div key={i} className="relative">
                   {/* Node dot */}
@@ -220,6 +284,27 @@ export default function StepChain({ state }: StepProps) {
                             </div>
                           ))}
                         </div>
+
+                        {/* Live Mirror Node data */}
+                        {isLiveLoading && (
+                          <div className="flex items-center gap-2 mt-3 text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            <Loader2 size={10} className="animate-spin" />
+                            <span>Fetching live data from Mirror Node...</span>
+                          </div>
+                        )}
+                        {live && (
+                          <div className="mt-3 pt-3 grid grid-cols-2 gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                            <div>
+                              <div className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(5,150,105,0.5)' }}>Consensus Timestamp</div>
+                              <div className="text-[11px] font-mono mt-0.5 text-emerald-400/80">{live.consensusTimestamp}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] uppercase tracking-wider" style={{ color: 'rgba(5,150,105,0.5)' }}>Sequence Number</div>
+                              <div className="text-[11px] font-mono mt-0.5 text-emerald-400/80">#{live.sequenceNumber}</div>
+                            </div>
+                          </div>
+                        )}
+
                         {level.link && (
                           <a href={level.link} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 mt-3 text-[10px] font-mono text-orange-400/60 hover:text-orange-400 transition-colors">
@@ -262,7 +347,7 @@ export default function StepChain({ state }: StepProps) {
             ].map((item, i) => (
               <div key={item.label} className="flex items-center gap-3">
                 <span style={{ color: item.color }}>{item.label}</span>
-                {i < 3 && <span className="text-white/10">→</span>}
+                {i < 3 && <span className="text-white/10">{'->'}</span>}
               </div>
             ))}
           </div>
