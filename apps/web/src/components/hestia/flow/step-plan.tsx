@@ -109,7 +109,7 @@ export default function StepPlan({ state, updateState, guidePhase, advanceGuide,
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
         {guidePhase === 2 && !closed && (
           <div className="absolute top-4 left-4 px-3 py-2 text-[11px]" style={{ background: 'rgba(10,8,14,0.8)', color: '#F59E0B', borderRadius: 6, border: '1px solid rgba(245,158,11,0.15)' }}>
-            Click 3+ points · Double-click to close{points.length > 0 && <span className="text-white/20 ml-2">{points.length} pts</span>}
+            Click 3+ points · Double-click to close{points.length > 0 && <span className="text-white/55 ml-2">{points.length} pts</span>}
           </div>
         )}
         {closed && acres > 0 && (
@@ -118,15 +118,15 @@ export default function StepPlan({ state, updateState, guidePhase, advanceGuide,
           </div>
         )}
         {/* Faint site reference label */}
-        <div className="absolute bottom-3 left-3 text-[9px] font-mono" style={{ color: 'rgba(251,146,60,0.2)' }}>Site boundary (reference)</div>
+        <div className="absolute bottom-3 left-3 text-[11px] font-mono" style={{ color: 'rgba(251,146,60,0.2)' }}>Site boundary (reference)</div>
       </div>
 
       {/* Right sidebar */}
       <div className="w-80 shrink-0 flex flex-col justify-between py-10 px-7" style={{ borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
         <div>
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(245,158,11,0.5)' }}>Step 4 · Treatment Plan</span>
-            <span className="px-2 py-0.5 text-[9px] font-medium" style={{ background: 'rgba(245,158,11,0.08)', color: '#F59E0B', borderRadius: 4 }}>Operator</span>
+            <span className="text-[12px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(245,158,11,0.5)' }}>Step 4 · Treatment Plan</span>
+            <span className="px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(245,158,11,0.08)', color: '#F59E0B', borderRadius: 4 }}>Operator</span>
           </div>
 
           <h1 className="text-white mb-5" style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)', fontWeight: 100, letterSpacing: '-0.04em' }}>The Plan</h1>
@@ -141,19 +141,19 @@ export default function StepPlan({ state, updateState, guidePhase, advanceGuide,
                   style={{ borderRadius: 6, background: sel ? `${t.color}08` : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                   <I size={13} style={{ color: sel ? t.color : 'rgba(255,255,255,0.15)' }} />
                   <span className="flex-1 text-[11px]" style={{ color: sel ? '#fff' : 'rgba(255,255,255,0.3)' }}>{t.name}</span>
-                  <span className="text-[8px] font-mono" style={{ color: sel ? t.color : 'rgba(255,255,255,0.1)' }}>{t.reduction}</span>
+                  <span className="text-[12px] font-mono" style={{ color: sel ? t.color : 'rgba(255,255,255,0.1)' }}>{t.reduction}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Weather chip */}
-          <div className="text-[9px] px-2.5 py-1.5 mb-4" style={{ background: 'rgba(16,185,129,0.04)', color: 'rgba(16,185,129,0.5)', borderRadius: 4 }}>
+          <div className="text-[11px] px-2.5 py-1.5 mb-4" style={{ background: 'rgba(16,185,129,0.04)', color: 'rgba(16,185,129,0.5)', borderRadius: 4 }}>
             NOAA: Wind 5-8 mph NW · RH 35% · 62°F — <span style={{ color: '#10B981' }}>RX WINDOW</span>
           </div>
 
           {guidePhase === 1 && !success && (
-            <button onClick={advanceGuide} className="w-full py-2.5 text-[11px] font-medium text-white/50 mb-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>
+            <button onClick={advanceGuide} className="w-full py-2.5 text-[11px] font-medium text-white/65 mb-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>
               Confirm: {selType.name}
             </button>
           )}
@@ -168,10 +168,10 @@ export default function StepPlan({ state, updateState, guidePhase, advanceGuide,
           {success && (
             <div className="flex items-center justify-between py-3 px-4" style={{ background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.1)', borderRadius: 8 }}>
               <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-amber-400" /><span className="text-amber-400 text-[12px]">Plan submitted & approved</span></div>
-              <a href={state.plan?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[10px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">HashScan <ExternalLink size={9} /></a>
+              <a href={state.plan?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[12px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">HashScan <ExternalLink size={9} /></a>
             </div>
           )}
-          {!success && <p className="text-[10px] text-white/12 mt-2">{guidePhase === 1 ? 'Select treatment type.' : guidePhase === 2 ? 'Draw treatment area on the map.' : 'Submit to Guardian.'}</p>}
+          {!success && <p className="text-[12px] text-white/60 mt-2">{guidePhase === 1 ? 'Select treatment type.' : guidePhase === 2 ? 'Draw treatment area on the map.' : 'Submit to Guardian.'}</p>}
         </div>
       </div>
     </div>

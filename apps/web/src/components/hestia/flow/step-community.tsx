@@ -97,15 +97,15 @@ export default function StepCommunity({ state, updateState, guidePhase, advanceG
         {/* Header */}
         <div>
           <div className="flex items-center gap-3 mb-8">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(251,146,60,0.5)' }}>Step 2 · Site Registration</span>
-            <span className="px-2 py-0.5 text-[9px] font-medium" style={{ background: 'rgba(251,146,60,0.08)', color: '#FB923C', borderRadius: 4 }}>Land Manager</span>
+            <span className="text-[12px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(251,146,60,0.5)' }}>Step 2 · Site Registration</span>
+            <span className="px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(251,146,60,0.08)', color: '#FB923C', borderRadius: 4 }}>Land Manager</span>
           </div>
 
           {/* Hero — site identity */}
           <h1 className="text-white mb-1" style={{ fontSize: 'clamp(2rem, 3.5vw, 2.8rem)', fontWeight: 100, letterSpacing: '-0.04em', lineHeight: 1 }}>
             Tahoe Donner
           </h1>
-          <p className="text-white/20 text-[13px] mb-6">Unit 7 · Nevada County, California</p>
+          <p className="text-white/55 text-[13px] mb-6">Unit 7 · Nevada County, California</p>
 
           {/* Key metrics strip */}
           <div className="flex gap-8 mb-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
@@ -115,13 +115,13 @@ export default function StepCommunity({ state, updateState, guidePhase, advanceG
               { label: 'Risk Score', value: riskScore ? String(riskScore.total) : '...', accent: true },
             ].map(m => (
               <div key={m.label}>
-                <div className="text-[10px] text-white/20 uppercase tracking-wider mb-1">{m.label}</div>
+                <div className="text-[12px] text-white/55 uppercase tracking-wider mb-1">{m.label}</div>
                 <div className="text-xl font-mono" style={{ color: m.accent ? '#EF4444' : 'rgba(255,255,255,0.7)', fontWeight: 300 }}>{m.value}</div>
               </div>
             ))}
             {nearbyFires > 0 && (
               <div>
-                <div className="text-[10px] text-white/20 uppercase tracking-wider mb-1">Fires Nearby</div>
+                <div className="text-[12px] text-white/55 uppercase tracking-wider mb-1">Fires Nearby</div>
                 <div className="text-xl font-mono text-red-400" style={{ fontWeight: 300 }}>{nearbyFires}</div>
               </div>
             )}
@@ -134,14 +134,14 @@ export default function StepCommunity({ state, updateState, guidePhase, advanceG
               ['Coordinates', `${SITE.lat}°N, ${Math.abs(SITE.lon)}°W`], ['Hedera Account', SITE.hedera],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between text-[11px]">
-                <span className="text-white/20">{k}</span>
-                <span className="font-mono text-white/50">{v}</span>
+                <span className="text-white/55">{k}</span>
+                <span className="font-mono text-white/65">{v}</span>
               </div>
             ))}
             {riskScore && (
               <div className="flex justify-between text-[11px]">
-                <span className="text-white/20">Risk Oracle</span>
-                <span className="font-mono text-white/25">{RISK_ORACLE_ADDRESS.slice(0, 12)}...</span>
+                <span className="text-white/55">Risk Oracle</span>
+                <span className="font-mono text-white/60">{RISK_ORACLE_ADDRESS.slice(0, 12)}...</span>
               </div>
             )}
           </div>
@@ -170,12 +170,12 @@ export default function StepCommunity({ state, updateState, guidePhase, advanceG
                 <CheckCircle2 size={14} className="text-emerald-400" />
                 <span className="text-emerald-400 text-[12px]">Registered on Hedera</span>
               </div>
-              <a href={state.site?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[10px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">
+              <a href={state.site?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[12px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">
                 HashScan <ExternalLink size={9} />
               </a>
             </div>
           )}
-          {!success && <p className="text-[10px] text-white/15 mt-3 text-center">{guidePhase === 1 ? 'Review the site data above.' : guidePhase === 2 ? 'Confirm the map location.' : 'Submit to create a Verifiable Credential.'}</p>}
+          {!success && <p className="text-[12px] text-white/65 mt-3 text-center">{guidePhase === 1 ? 'Review the site data above.' : guidePhase === 2 ? 'Confirm the map location.' : 'Submit to create a Verifiable Credential.'}</p>}
         </div>
       </div>
 

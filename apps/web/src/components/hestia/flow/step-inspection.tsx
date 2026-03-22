@@ -107,8 +107,8 @@ export default function StepInspection({ state, updateState, guidePhase, advance
       <div className="w-[480px] shrink-0 flex flex-col justify-between py-10 px-10">
         <div>
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(16,185,129,0.5)' }}>Step 3 · Verifier Approval</span>
-            <span className="px-2 py-0.5 text-[9px] font-medium" style={{ background: 'rgba(16,185,129,0.08)', color: '#10B981', borderRadius: 4 }}>Verifier</span>
+            <span className="text-[12px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(16,185,129,0.5)' }}>Step 3 · Verifier Approval</span>
+            <span className="px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(16,185,129,0.08)', color: '#10B981', borderRadius: 4 }}>Verifier</span>
           </div>
 
           <h1 className="text-white mb-6" style={{ fontSize: 'clamp(1.8rem, 3vw, 2.5rem)', fontWeight: 100, letterSpacing: '-0.04em' }}>The Inspection</h1>
@@ -116,16 +116,16 @@ export default function StepInspection({ state, updateState, guidePhase, advance
           {/* Registration data */}
           {siteData && (
             <div className="space-y-1.5 mb-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-              <div className="text-[9px] text-white/15 uppercase tracking-wider mb-2">Registration Data</div>
+              <div className="text-[11px] text-white/65 uppercase tracking-wider mb-2">Registration Data</div>
               {[['Site', siteData.siteName || 'Tahoe Donner Unit 7'], ['Owner', siteData.ownerEntity || 'Tahoe Donner Association'], ['Acres', siteData.acres || 640], ['WUI', siteData.wui || 187], ['Coords', `${siteData.lat || 39.3406}°N, ${Math.abs(Number(siteData.lon) || 120.2346)}°W`]].map(([k, v]) => (
-                <div key={String(k)} className="flex justify-between text-[11px]"><span className="text-white/20">{String(k)}</span><span className="font-mono text-white/50">{String(v)}</span></div>
+                <div key={String(k)} className="flex justify-between text-[11px]"><span className="text-white/55">{String(k)}</span><span className="font-mono text-white/65">{String(v)}</span></div>
               ))}
             </div>
           )}
 
           {/* Phase 1: Review */}
           {guidePhase === 1 && !success && (
-            <button onClick={advanceGuide} className="w-full py-2.5 mb-4 text-[11px] font-medium text-white/50" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>Reviewed</button>
+            <button onClick={advanceGuide} className="w-full py-2.5 mb-4 text-[11px] font-medium text-white/65" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>Reviewed</button>
           )}
 
           {/* Phase 2: Checklist */}
@@ -135,11 +135,11 @@ export default function StepInspection({ state, updateState, guidePhase, advance
                 <button key={c.id} onClick={() => handleCheck(c.id)} disabled={checked[c.id]}
                   className="w-full flex items-center gap-3 py-2 px-3 text-left transition-all"
                   style={{ borderRadius: 6, background: checked[c.id] ? 'rgba(16,185,129,0.04)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.03)', ...pulse(guidePhase === 2 && !checked[c.id] && Object.values(checked).filter(Boolean).length === i) }}>
-                  {checked[c.id] ? <CheckCircle2 size={13} className="text-emerald-400/70 shrink-0" /> : <Circle size={13} className="text-white/12 shrink-0" />}
+                  {checked[c.id] ? <CheckCircle2 size={13} className="text-emerald-400/70 shrink-0" /> : <Circle size={13} className="text-white/60 shrink-0" />}
                   <span className="text-[11px] flex-1" style={{ color: checked[c.id] ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)' }}>
                     {c.label}
-                    {c.id === 'vegetation' && ndviValue && checked[c.id] && <span className="font-mono text-emerald-400/50 ml-1 text-[9px]">NDVI {ndviValue}</span>}
-                    {c.id === 'fires' && checked[c.id] && <span className="font-mono ml-1 text-[9px]" style={{ color: nearbyFires === 0 ? '#10B981' : '#F59E0B' }}>{nearbyFires === 0 ? '0 fires ✓' : `${nearbyFires} ⚠`}</span>}
+                    {c.id === 'vegetation' && ndviValue && checked[c.id] && <span className="font-mono text-emerald-400/50 ml-1 text-[11px]">NDVI {ndviValue}</span>}
+                    {c.id === 'fires' && checked[c.id] && <span className="font-mono ml-1 text-[11px]" style={{ color: nearbyFires === 0 ? '#10B981' : '#F59E0B' }}>{nearbyFires === 0 ? '0 fires ✓' : `${nearbyFires} ⚠`}</span>}
                   </span>
                 </button>
               ))}
@@ -148,7 +148,7 @@ export default function StepInspection({ state, updateState, guidePhase, advance
 
           {/* Phase 3: Fetching */}
           {guidePhase === 3 && fetching && !success && (
-            <div className="flex items-center gap-2 py-3 mb-4"><Loader2 size={13} className="animate-spin text-emerald-400/60" /><span className="text-[11px] text-white/25">Connecting to Guardian...</span></div>
+            <div className="flex items-center gap-2 py-3 mb-4"><Loader2 size={13} className="animate-spin text-emerald-400/60" /><span className="text-[11px] text-white/60">Connecting to Guardian...</span></div>
           )}
         </div>
 
@@ -162,7 +162,7 @@ export default function StepInspection({ state, updateState, guidePhase, advance
           {success && (
             <div className="flex items-center justify-between py-3 px-4" style={{ background: 'rgba(5,150,105,0.06)', border: '1px solid rgba(5,150,105,0.1)', borderRadius: 8 }}>
               <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-400" /><span className="text-emerald-400 text-[12px]">Site approved</span></div>
-              <a href={state.siteApproval?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[10px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">HashScan <ExternalLink size={9} /></a>
+              <a href={state.siteApproval?.hashScanLink} target="_blank" rel="noopener noreferrer" className="text-[12px] font-mono text-orange-400/50 hover:text-orange-400 flex items-center gap-1">HashScan <ExternalLink size={9} /></a>
             </div>
           )}
         </div>
@@ -170,7 +170,7 @@ export default function StepInspection({ state, updateState, guidePhase, advance
 
       <div className="flex-1 relative">
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-        {nearbyFires > 0 && <div className="absolute top-3 right-3 px-2.5 py-1.5 text-[10px] font-mono" style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444', borderRadius: 6 }}>{nearbyFires} fires in region</div>}
+        {nearbyFires > 0 && <div className="absolute top-3 right-3 px-2.5 py-1.5 text-[12px] font-mono" style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444', borderRadius: 6 }}>{nearbyFires} fires in region</div>}
       </div>
     </div>
   );

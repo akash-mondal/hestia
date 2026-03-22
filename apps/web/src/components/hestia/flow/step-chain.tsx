@@ -42,7 +42,7 @@ export default function StepChain({ state, completeStep }: StepProps) {
       <div className="w-full max-w-2xl px-10">
         {/* Header */}
         <div className="text-center mb-6">
-          <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(251,146,60,0.4)' }}>Step 8 · Trust Chain</span>
+          <span className="text-[12px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(251,146,60,0.4)' }}>Step 8 · Trust Chain</span>
           <h1 className="text-white mt-2" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 100, letterSpacing: '-0.04em' }}>
             The Chain
           </h1>
@@ -58,7 +58,7 @@ export default function StepChain({ state, completeStep }: StepProps) {
           ].map(s => (
             <div key={s.label} className="text-center">
               <div className="text-lg font-mono" style={{ color: s.accent || 'rgba(255,255,255,0.6)', fontWeight: 300 }}>{s.value}</div>
-              <div className="text-[9px] text-white/15 uppercase tracking-wider">{s.label}</div>
+              <div className="text-[11px] text-white/65 uppercase tracking-wider">{s.label}</div>
             </div>
           ))}
         </div>
@@ -77,10 +77,10 @@ export default function StepChain({ state, completeStep }: StepProps) {
                 <Icon size={14} style={{ color: level.color, opacity: 0.6 }} />
                 <div className="flex-1 min-w-0">
                   <span className="text-[11px] text-white/60">{level.title}</span>
-                  <span className="text-[9px] text-white/15 ml-2">{level.sub}</span>
+                  <span className="text-[11px] text-white/65 ml-2">{level.sub}</span>
                 </div>
                 {hasData && <CheckCircle2 size={12} className="text-emerald-400/60 shrink-0" />}
-                <a href={getLink(level.key)} target="_blank" rel="noopener noreferrer" className="text-[8px] font-mono text-white/15 hover:text-orange-400 flex items-center gap-1 shrink-0">
+                <a href={getLink(level.key)} target="_blank" rel="noopener noreferrer" className="text-[12px] font-mono text-white/65 hover:text-orange-400 flex items-center gap-1 shrink-0">
                   HashScan <ExternalLink size={8} />
                 </a>
               </div>
@@ -102,13 +102,13 @@ export default function StepChain({ state, completeStep }: StepProps) {
             { label: 'Value', color: '#FB923C', data: savings > 0 ? `$${savings.toLocaleString()}/yr` : '—' },
           ].map(item => (
             <div key={item.label} className="text-center py-3" style={{ borderTop: `2px solid ${item.color}30` }}>
-              <div className="text-[8px] uppercase tracking-wider mb-1" style={{ color: `${item.color}60` }}>{item.label}</div>
-              <div className="text-[10px] font-mono text-white/40">{item.data}</div>
+              <div className="text-[12px] uppercase tracking-wider mb-1" style={{ color: `${item.color}60` }}>{item.label}</div>
+              <div className="text-[12px] font-mono text-white/60">{item.data}</div>
             </div>
           ))}
         </div>
 
-        <p className="text-center text-[12px] text-white/10 italic">This is what a fire ledger looks like.</p>
+        <p className="text-center text-[12px] text-white/60 italic">This is what a fire ledger looks like.</p>
       </div>
     </div>
   );

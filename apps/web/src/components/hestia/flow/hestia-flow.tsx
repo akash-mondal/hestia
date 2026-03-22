@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Satellite, Users, ShieldCheck, Pickaxe, ArrowRight } from 'lucide-react';
 import FlowNav from './flow-nav';
-import FlowFeed from './flow-feed';
+// FlowFeed removed — each step shows its own HashScan links inline
 import StepLandscape from './step-landscape';
 import StepCommunity from './step-community';
 import StepInspection from './step-inspection';
@@ -290,10 +290,6 @@ export default function HestiaFlow({ initialWrcSupply, initialHcsCount }: Hestia
       </nav>
 
       <main className="relative">
-        {state.hcsMessages.length > 0 && (
-          <FlowFeed messages={state.hcsMessages} wrcBefore={state.wrcBefore} wrcAfter={state.wrcAfter} />
-        )}
-
         <AnimatePresence mode="wait">
           <motion.div
             key={state.step}

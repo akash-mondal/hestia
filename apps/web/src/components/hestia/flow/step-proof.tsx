@@ -100,9 +100,9 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
       <div className="w-full max-w-5xl px-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-[10px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(129,140,248,0.5)' }}>Step 6 · Risk Assessment + dMRV</span>
-          <span className="px-2 py-0.5 text-[9px] font-medium" style={{ background: 'rgba(129,140,248,0.08)', color: '#818CF8', borderRadius: 4 }}>Satellite Analyst</span>
-          {satData && <span className="flex items-center gap-1 text-[8px] font-mono ml-auto" style={{ color: satData.source === 'demo_fallback' ? '#F59E0B' : '#10B981' }}>
+          <span className="text-[12px] font-mono tracking-[0.2em] uppercase" style={{ color: 'rgba(129,140,248,0.5)' }}>Step 6 · Risk Assessment + dMRV</span>
+          <span className="px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(129,140,248,0.08)', color: '#818CF8', borderRadius: 4 }}>Satellite Analyst</span>
+          {satData && <span className="flex items-center gap-1 text-[12px] font-mono ml-auto" style={{ color: satData.source === 'demo_fallback' ? '#F59E0B' : '#10B981' }}>
             <Radio size={7} /> {satData.source === 'demo_fallback' ? 'Demo data' : 'Sentinel-2 L2A'}
           </span>}
         </div>
@@ -113,15 +113,15 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
             <div className="text-white" style={{ fontSize: 'clamp(3.5rem, 7vw, 6rem)', fontWeight: 100, lineHeight: 0.85, letterSpacing: '-0.05em' }}>
               {mintAmount}
             </div>
-            <div className="text-[13px] text-white/25 mt-1" style={{ fontWeight: 300 }}>Wildfire Resilience Credits to mint</div>
+            <div className="text-[13px] text-white/60 mt-1" style={{ fontWeight: 300 }}>Wildfire Resilience Credits to mint</div>
           </div>
           <div className="pb-1 flex gap-6">
             <div>
-              <div className="text-[10px] text-white/15 uppercase tracking-wider">Risk</div>
-              <div className="text-lg font-mono"><span className="text-red-400">{preTotal}</span> <span className="text-white/15">→</span> <span className="text-emerald-400">{postTotal}</span></div>
+              <div className="text-[12px] text-white/65 uppercase tracking-wider">Risk</div>
+              <div className="text-lg font-mono"><span className="text-red-400">{preTotal}</span> <span className="text-white/65">→</span> <span className="text-emerald-400">{postTotal}</span></div>
             </div>
             <div>
-              <div className="text-[10px] text-white/15 uppercase tracking-wider">Reduction</div>
+              <div className="text-[12px] text-white/65 uppercase tracking-wider">Reduction</div>
               <div className="text-lg font-mono text-indigo-400">{reductionPct}%</div>
             </div>
           </div>
@@ -130,9 +130,9 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
         <div className="grid grid-cols-3 gap-6">
           {/* Col 1: Satellite evidence */}
           <div>
-            <div className="text-[10px] text-white/20 uppercase tracking-wider mb-3">Satellite Evidence</div>
+            <div className="text-[12px] text-white/55 uppercase tracking-wider mb-3">Satellite Evidence</div>
             {satLoading ? (
-              <div className="flex items-center gap-2 py-6"><Loader2 size={12} className="animate-spin text-indigo-400" /><span className="text-[10px] text-white/20">Querying Sentinel-2...</span></div>
+              <div className="flex items-center gap-2 py-6"><Loader2 size={12} className="animate-spin text-indigo-400" /><span className="text-[12px] text-white/55">Querying Sentinel-2...</span></div>
             ) : satData ? (
               <div className="space-y-2">
                 {[
@@ -143,21 +143,21 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
                   ['Severity', satData.burn_severity, '#F59E0B'],
                 ].map(([k, v, c]) => (
                   <div key={String(k)} className="flex justify-between text-[11px]" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: 6 }}>
-                    <span className="text-white/20">{String(k)}</span>
+                    <span className="text-white/55">{String(k)}</span>
                     <span className="font-mono font-medium" style={{ color: String(c) }}>{String(v)}</span>
                   </div>
                 ))}
               </div>
             ) : null}
             {validationSubmitted && validationLink && (
-              <div className="flex items-center gap-1.5 mt-3 text-[9px]">
+              <div className="flex items-center gap-1.5 mt-3 text-[11px]">
                 <CheckCircle2 size={10} className="text-indigo-400/60" />
                 <span className="text-indigo-400/40">Validation VC recorded</span>
                 <a href={validationLink} target="_blank" rel="noopener noreferrer" className="font-mono text-orange-400/30 hover:text-orange-400 flex items-center gap-0.5 ml-auto"><ExternalLink size={7} /></a>
               </div>
             )}
             {guidePhase === 1 && !success && satData && (
-              <button onClick={advanceGuide} className="w-full mt-3 py-2 text-[11px] font-medium text-white/50" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>
+              <button onClick={advanceGuide} className="w-full mt-3 py-2 text-[11px] font-medium text-white/65" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(true) }}>
                 Evidence Confirmed
               </button>
             )}
@@ -166,14 +166,14 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
           {/* Col 2: Risk components */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] text-white/20 uppercase tracking-wider">Risk Components</span>
-              <span className="text-[7px] font-mono text-indigo-400/30">{RISK_ORACLE_ADDRESS.slice(0, 10)}...</span>
+              <span className="text-[12px] text-white/55 uppercase tracking-wider">Risk Components</span>
+              <span className="text-[11px] font-mono text-indigo-400/30">{RISK_ORACLE_ADDRESS.slice(0, 10)}...</span>
             </div>
             {RISK_COMPONENTS.map(rc => (
               <div key={rc.key} className="mb-2">
-                <div className="flex justify-between text-[9px] mb-0.5">
-                  <span className="text-white/20">{rc.label}</span>
-                  <span className="font-mono text-white/30">{PRE_RISK[rc.key as keyof typeof PRE_RISK]} → <span className="text-indigo-400">{postRisk[rc.key]}</span></span>
+                <div className="flex justify-between text-[11px] mb-0.5">
+                  <span className="text-white/55">{rc.label}</span>
+                  <span className="font-mono text-white/65">{PRE_RISK[rc.key as keyof typeof PRE_RISK]} → <span className="text-indigo-400">{postRisk[rc.key]}</span></span>
                 </div>
                 <input type="range" min="0" max={rc.max} value={postRisk[rc.key]} disabled={guidePhase !== 2}
                   onChange={e => setPostRisk(p => ({ ...p, [rc.key]: Number(e.target.value) }))}
@@ -181,21 +181,21 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
               </div>
             ))}
             {guidePhase === 2 && !success && (
-              <button onClick={lockScores} disabled={riskLoading} className="w-full mt-2 py-2 text-[11px] font-medium text-white/50" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(!riskLoading) }}>
+              <button onClick={lockScores} disabled={riskLoading} className="w-full mt-2 py-2 text-[11px] font-medium text-white/65" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 6, ...pulse(!riskLoading) }}>
                 {riskLoading ? 'Computing on-chain...' : 'Lock Scores'}
               </button>
             )}
-            {preResult && <div className="text-[7px] font-mono text-white/8 mt-2">Computed by RiskScoreOracle on Hedera</div>}
+            {preResult && <div className="text-[11px] font-mono text-white/8 mt-2">Computed by RiskScoreOracle on Hedera</div>}
           </div>
 
           {/* Col 3: Mint */}
           <div className="flex flex-col">
-            <div className="text-[10px] text-indigo-400/40 uppercase tracking-wider mb-3">Token Minting</div>
+            <div className="text-[12px] text-indigo-400/40 uppercase tracking-wider mb-3">Token Minting</div>
             <div className="flex-1 flex flex-col justify-center items-center text-center">
               <div className="text-3xl font-mono text-white mb-1" style={{ fontWeight: 200 }}>{mintAmount}</div>
-              <div className="text-[10px] text-white/20 mb-1">WRC</div>
-              <div className="text-[8px] font-mono text-white/10">{WRC_TOKEN_ID}</div>
-              <div className="text-[8px] font-mono text-white/10">1 WRC = 1 treated acre</div>
+              <div className="text-[12px] text-white/55 mb-1">WRC</div>
+              <div className="text-[12px] font-mono text-white/60">{WRC_TOKEN_ID}</div>
+              <div className="text-[12px] font-mono text-white/60">1 WRC = 1 treated acre</div>
             </div>
 
             {guidePhase >= 3 && !success && (
@@ -209,8 +209,8 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
                   <CheckCircle2 size={13} className="text-emerald-400" />
                   <span className="text-emerald-400 text-[11px]">{mintAmount} WRC minted</span>
                 </div>
-                {state.wrcBefore !== state.wrcAfter && <div className="text-[9px] font-mono text-center text-white/20">Supply: {(state.wrcBefore / 100).toLocaleString()} → <span className="text-emerald-400">{(state.wrcAfter / 100).toLocaleString()}</span></div>}
-                <a href={state.assessment?.hashScanLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 text-[9px] font-mono text-orange-400/40 hover:text-orange-400">HashScan <ExternalLink size={8} /></a>
+                {state.wrcBefore !== state.wrcAfter && <div className="text-[11px] font-mono text-center text-white/55">Supply: {(state.wrcBefore / 100).toLocaleString()} → <span className="text-emerald-400">{(state.wrcAfter / 100).toLocaleString()}</span></div>}
+                <a href={state.assessment?.hashScanLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1 text-[11px] font-mono text-orange-400/40 hover:text-orange-400">HashScan <ExternalLink size={8} /></a>
               </div>
             )}
           </div>
@@ -219,7 +219,7 @@ export default function StepProof({ state, updateState, guidePhase, advanceGuide
         {/* Corroboration */}
         {satData && postResult && (
           <div className="mt-4 pt-4 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
-            <span className="text-[10px] text-indigo-400/40">dMRV: Satellite dNBR <span className="font-mono text-indigo-400/60">{satData.dnbr}</span> independently confirms <span className="font-mono text-emerald-400/60">{reductionPct}%</span> risk reduction from ground report</span>
+            <span className="text-[12px] text-indigo-400/40">dMRV: Satellite dNBR <span className="font-mono text-indigo-400/60">{satData.dnbr}</span> independently confirms <span className="font-mono text-emerald-400/60">{reductionPct}%</span> risk reduction from ground report</span>
           </div>
         )}
       </div>
