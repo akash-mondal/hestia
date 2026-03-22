@@ -108,11 +108,23 @@ export default function HestiaFlow({ initialWrcSupply, initialHcsCount }: Hestia
 
   const stepProps = { state, updateState, goToStep, pollHcs, pollWrc };
 
-  return (
-    <div className="min-h-screen" style={{ background: '#0C0A09' }}>
-      <FlowNav steps={STEPS} currentStep={state.step} onStepClick={goToStep} />
+  // Respect reduced motion preference
+  const reducedMotion = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  }, []);
 
-      <div className="relative">
+  const motionVariants = reducedMotion
+    ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } };
+
+  return (
+    <div className="min-h-screen" style={{ background: '#0C0A09' }} role="application" aria-label="Hestia Wildfire Resilience Credit Flow">
+      <nav aria-label="Flow steps">
+        <FlowNav steps={STEPS} currentStep={state.step} onStepClick={goToStep} />
+      </nav>
+
+      <main className="relative">
         {/* On-chain activity feed — fixed right edge */}
         {state.hcsMessages.length > 0 && (
           <FlowFeed
@@ -126,12 +138,10 @@ export default function HestiaFlow({ initialWrcSupply, initialHcsCount }: Hestia
         <AnimatePresence mode="wait">
           <motion.div
             key={state.step}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            {...motionVariants}
             transition={{
-              duration: 0.4,
-              ease: [0.25, 1, 0.5, 1], // ease-out-quart
+              duration: reducedMotion ? 0 : 0.4,
+              ease: [0.25, 1, 0.5, 1],
             }}
             className="min-h-[calc(100vh-56px)]"
           >
@@ -145,7 +155,7 @@ export default function HestiaFlow({ initialWrcSupply, initialHcsCount }: Hestia
             {state.step === 7 && <StepChain {...stepProps} />}
           </motion.div>
         </AnimatePresence>
-      </div>
+      </main>
     </div>
   );
 }

@@ -56,7 +56,7 @@ export default function FlowNav({ steps, currentStep, onStepClick }: FlowNavProp
       </div>
 
       <div className="flex items-center gap-1.5 text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse motion-reduce:animate-none" />
         Hedera Testnet
       </div>
     </div>

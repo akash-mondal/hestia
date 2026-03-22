@@ -205,14 +205,14 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
               </div>
             ) : submitted ? (
               <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.15)' }}>
-                <Loader2 size={16} className="text-amber-400 animate-spin" />
+                <Loader2 size={16} className="text-amber-400 animate-spin motion-reduce:animate-none" />
                 <span className="text-amber-400 text-[12px]">{statusText || 'Processing approval...'}</span>
               </div>
             ) : (
               <button onClick={handleSubmit} disabled={isWorking}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
                 style={{ background: '#EA580C' }}>
-                {isWorking ? <Loader2 size={16} className="animate-spin" /> : <Flame size={16} />}
+                {isWorking ? <Loader2 size={16} className="animate-spin motion-reduce:animate-none" /> : <Flame size={16} />}
                 {isWorking ? statusText || 'Submitting...' : 'Submit Treatment Plan to Hedera'}
               </button>
             )}
@@ -224,7 +224,7 @@ export default function StepPlan({ state, updateState, goToStep, pollHcs }: Step
           <div className="mt-8 text-center animate-fade-in">
             <p className="text-white/30 text-[11px] mb-4">Plan approved. The crew is ready to burn.</p>
             <button onClick={() => goToStep(4)}
-              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02]"
+              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
               style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
               Report Treatment Completion <ArrowRight size={16} />
             </button>

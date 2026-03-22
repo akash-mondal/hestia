@@ -56,7 +56,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
               <button onClick={fetchFires} disabled={loading}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all"
                 style={{ color: '#FB923C', background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.2)' }}>
-                <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+                <RefreshCw size={12} className={loading ? 'animate-spin motion-reduce:animate-none' : ''} />
                 {loading ? 'Scanning...' : fires ? 'Refresh' : 'Scan California'}
               </button>
             </div>
@@ -65,7 +65,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
               <div>
                 {fires.fires.map((f, i) => (
                   <div key={i} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" style={{ boxShadow: '0 0 8px rgba(239,68,68,0.4)' }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse motion-reduce:animate-none shrink-0" style={{ boxShadow: '0 0 8px rgba(239,68,68,0.4)' }} />
                     <span className="text-white/70 text-[11px] font-mono w-44">{f.latitude.toFixed(4)}°N, {Math.abs(f.longitude).toFixed(4)}°W</span>
                     <span className="text-red-400 text-[11px] font-mono w-16">{f.brightness}K</span>
                     <span className={`text-[9px] font-medium px-2 py-0.5 rounded ${f.confidence === 'high' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400'}`}>{f.confidence}</span>
@@ -90,7 +90,7 @@ export default function StepLandscape({ state, updateState, goToStep }: StepProp
         <div className="mt-12 animate-fade-in stagger-3">
           <p className="text-white/30 text-[11px] text-center mb-4">This landscape needs protection.</p>
           <button onClick={() => goToStep(1)}
-            className="flex items-center gap-3 px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02]"
+            className="flex items-center gap-3 px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
             style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
             Register a Treatment Site <ArrowRight size={16} />
           </button>

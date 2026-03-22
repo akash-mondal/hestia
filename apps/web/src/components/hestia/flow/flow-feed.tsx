@@ -20,7 +20,7 @@ export default function FlowFeed({ messages, wrcBefore, wrcAfter }: FlowFeedProp
       borderRadius: 12,
     }}>
       <div className="px-3 py-2.5 flex items-center gap-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <Radio size={12} className="text-emerald-400 animate-pulse" />
+        <Radio size={12} className="text-emerald-400 animate-pulse motion-reduce:animate-none" />
         <span className="text-[10px] font-semibold text-white/60 uppercase tracking-wider">On-Chain Activity</span>
       </div>
 

@@ -273,7 +273,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
                 style={{ background: submitting ? 'rgba(5,150,105,0.3)' : '#059669', boxShadow: submitting ? 'none' : '0 0 30px rgba(5,150,105,0.2)' }}>
                 {submitting ? (
                   <>
-                    <Loader2 size={20} className="animate-spin" />
+                    <Loader2 size={20} className="animate-spin motion-reduce:animate-none" />
                     {mintStatus || 'Processing...'}
                   </>
                 ) : (
@@ -292,7 +292,7 @@ export default function StepProof({ state, updateState, goToStep, pollHcs, pollW
           <div className="mt-8 text-center animate-fade-in">
             <p className="text-white/30 text-[11px] mb-4">Credits minted. Now see what they're worth.</p>
             <button onClick={() => goToStep(6)}
-              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02]"
+              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
               style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
               See the Impact <ArrowRight size={16} />
             </button>

@@ -211,7 +211,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
               <button onClick={handleSubmit} disabled={submitting}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
                 style={{ background: '#EA580C' }}>
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <DollarSign size={16} />}
+                {submitting ? <Loader2 size={16} className="animate-spin motion-reduce:animate-none" /> : <DollarSign size={16} />}
                 {submitting ? 'Recording insurance impact...' : 'Record Insurance Impact on Hedera'}
               </button>
             )}
@@ -223,7 +223,7 @@ export default function StepValue({ state, updateState, goToStep, pollHcs }: Ste
           <div className="mt-8 text-center animate-fade-in">
             <p className="text-white/30 text-[11px] mb-4">The value is proven. See the complete chain of evidence.</p>
             <button onClick={() => goToStep(7)}
-              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02]"
+              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
               style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
               View Trust Chain <ArrowRight size={16} />
             </button>

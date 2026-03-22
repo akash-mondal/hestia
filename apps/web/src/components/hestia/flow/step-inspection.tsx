@@ -143,7 +143,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
               </div>
             ) : loading ? (
               <div className="flex items-center justify-center gap-2 py-8">
-                <Loader2 size={16} className="text-white/30 animate-spin" />
+                <Loader2 size={16} className="text-white/30 animate-spin motion-reduce:animate-none" />
                 <span className="text-white/30 text-[11px]">Fetching pending sites from Guardian...</span>
               </div>
             ) : fetchError ? (
@@ -172,7 +172,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
                     <button onClick={() => handleApprove(docId)} disabled={approving || !docId}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50 hover:opacity-90"
                       style={{ background: '#059669' }}>
-                      {approving ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                      {approving ? <Loader2 size={14} className="animate-spin motion-reduce:animate-none" /> : <ShieldCheck size={14} />}
                       {approving ? 'Approving...' : 'APPROVE'}
                     </button>
                   </div>
@@ -188,7 +188,7 @@ export default function StepInspection({ state, updateState, goToStep, pollHcs }
           <div className="mt-8 text-center animate-fade-in">
             <p className="text-white/30 text-[11px] mb-4">Site approved. Time to plan the prescribed burn.</p>
             <button onClick={() => goToStep(3)}
-              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02]"
+              className="flex items-center gap-3 mx-auto px-8 py-4 rounded-xl text-white text-sm font-medium transition-all hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black outline-none"
               style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid rgba(234, 88, 12, 0.3)' }}>
               Submit Treatment Plan <ArrowRight size={16} />
             </button>
