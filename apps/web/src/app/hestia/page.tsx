@@ -175,7 +175,6 @@ export default function HestiaLanding() {
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-[50] flex items-center justify-between px-8 py-6">
-        <div />
         <div className="flex items-center gap-2">
           <Flame size={20} className="text-orange-400" />
           <span className="text-white font-semibold text-lg" style={{ letterSpacing: '-0.02em' }}>HESTIA</span>
