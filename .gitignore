@@ -53,3 +53,4 @@ npm-debug.log*
 *.tsbuildinfo
 gee-service-account.json
 .claude/
+.vercel
