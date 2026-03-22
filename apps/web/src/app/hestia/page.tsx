@@ -264,24 +264,25 @@ export default function HestiaLanding() {
         {activeChapter === 6 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[20] flex flex-col items-center justify-center pointer-events-none">
-            <p className="text-orange-400 text-[11px] tracking-[0.2em] uppercase mb-2" style={{ fontFamily: 'var(--font-mono)' }}>
+            <p className="text-orange-400 text-[11px] tracking-[0.2em] uppercase mb-3" style={{ fontFamily: 'var(--font-mono)' }}>
               &#9632; CHAPTER 07
             </p>
-            <h2 className="text-white mb-2 text-center" style={{
+            <h2 className="text-white mb-3 text-center" style={{
               fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 300, letterSpacing: '-0.03em',
-            }}>Choose Your Portal</h2>
-            <p className="text-white/50 text-sm mb-10 text-center max-w-md">
-              Four perspectives on wildfire resilience. Real Guardian data, real Hedera transactions, real satellite imagery.
+            }}>Step In</h2>
+            <p className="text-white/50 text-sm mb-12 text-center max-w-lg">
+              Everything you just read is live. Pick a role and see the real data, real transactions, real satellite feeds for yourself.
             </p>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl px-6 pointer-events-auto">
+            <div className="flex flex-row items-stretch justify-center gap-5 max-w-4xl px-6 pointer-events-auto">
               {HESTIA_ROLES.map((role, i) => (
-                <motion.div key={role.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.1 }}>
+                <motion.div key={role.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.1 }}
+                  className="w-[200px]">
                   <Link href={role.href}
-                    className="group block p-5 rounded-2xl border border-white/15 hover:border-white/40 backdrop-blur-md transition-all hover:scale-[1.03]"
+                    className="group flex flex-col h-full p-6 rounded-2xl border border-white/15 hover:border-white/40 backdrop-blur-md transition-all hover:scale-[1.03]"
                     style={{ background: 'rgba(21,10,0,0.6)' }}>
-                    <div className={`h-1 rounded-full bg-gradient-to-r ${role.gradient} mb-4 w-12 group-hover:w-full transition-all duration-500`} />
-                    <h3 className="text-white font-medium text-base mb-0.5">{role.title}</h3>
-                    <p className="text-white/40 text-xs tracking-wider uppercase">{role.subtitle}</p>
+                    <div className={`h-1 rounded-full bg-gradient-to-r ${role.gradient} mb-5 w-10 group-hover:w-full transition-all duration-500`} />
+                    <h3 className="text-white font-medium text-base mb-1">{role.title}</h3>
+                    <p className="text-white/40 text-[11px] tracking-wider uppercase">{role.subtitle}</p>
                   </Link>
                 </motion.div>
               ))}
