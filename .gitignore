@@ -63,3 +63,22 @@ gee-service-account.json
 apps/web/e2e/
 apps/web/playwright.config.ts
 apps/web/vitest.config.ts
+
+# Old Zeno components
+apps/web/src/__tests__/
+apps/web/src/components/compliance/
+apps/web/src/components/dashboard/
+apps/web/src/components/facilities/
+apps/web/src/components/facility/
+apps/web/src/components/map/
+apps/web/src/components/public/
+apps/web/src/components/regulator/
+apps/web/src/components/reports/
+apps/web/src/components/river-health/
+apps/web/src/components/satellite/
+apps/web/src/components/shared/
+apps/web/src/components/tokens/
+apps/web/src/components/trust-chain/
+apps/web/src/components/verifier/
+apps/web/src/components/layout/
+apps/web/src/components/landing/

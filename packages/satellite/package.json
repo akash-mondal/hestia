@@ -1,5 +1,5 @@
 {
-  "name": "@zeno/satellite",
+  "name": "@hestia/satellite",
   "version": "0.1.0",
   "private": true,
   "scripts": {

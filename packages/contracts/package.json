@@ -1,5 +1,5 @@
 {
-  "name": "@zeno/contracts",
+  "name": "@hestia/contracts",
   "version": "0.1.0",
   "private": true,
   "scripts": {
