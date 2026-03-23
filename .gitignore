@@ -54,3 +54,12 @@ npm-debug.log*
 gee-service-account.json
 .claude/
 .vercel
+
+# Zeno-specific (not Hestia)
+docs/aws-kms/
+PROJECTSPEC.md
+scripts/
+gee-service-account.json
+apps/web/e2e/
+apps/web/playwright.config.ts
+apps/web/vitest.config.ts

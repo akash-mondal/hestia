@@ -2,243 +2,184 @@
 
 **A fire ledger for wildfire resilience.**
 
-Hestia is an open-source platform that manages the full lifecycle of wildfire mitigation — from the moment a community registers a treatment site to the moment an insurer discounts their premium. Every activity produces a [Verifiable Credential](https://www.w3.org/TR/vc-data-model/) on [Hedera](https://hedera.com), every risk reduction is computed by on-chain smart contracts, and every treated acre mints a Wildfire Resilience Credit (WRC) that has real financial value.
+> **Live app:** [hestia.bond](https://hestia.bond) | **Guided demo:** [hestia.bond/hestia/app](https://hestia.bond/hestia/app)
+>
+> **Guardian UI:** [165.22.212.120:3000](http://165.22.212.120:3000) — Login: `akash` / `Akash@17327`
+>
+> **Source:** [github.com/akash-mondal/hestia](https://github.com/akash-mondal/hestia) — MIT License
 
-The problem is simple: communities that proactively manage wildfire risk have no standardized way to prove it. The proof chain is fragmented across spreadsheets, inspector visits, satellite imagery, and phone calls. An insurer in New York can't verify that a prescribed burn in California actually happened, was properly contained, and reduced risk by the claimed amount.
+---
 
-Hestia makes every step auditable, traceable, and tradable.
+## What is Hestia
 
-## The Lifecycle of a Digital Environmental Asset
+Hestia records wildfire mitigation activities as Verifiable Credentials on Hedera and mints Wildfire Resilience Credits (WRC) that insurers accept for premium discounts. Every prescribed burn, every fuel reduction report, every satellite verification creates an immutable, auditable record on the Hedera ledger through Guardian.
 
-Every environmental asset follows a path from nature to financial value. Hestia implements this lifecycle end-to-end on Hedera:
+The system follows a lifecycle: **Nature** (satellite imagery, ground sensors, fuel data) becomes a **Measured Outcome** (vegetation change, risk score reduction), which becomes a **Tradable Unit** (WRC tokens on HTS), which becomes **Financial Value** (insurance premium discount computed on-chain).
 
-```mermaid
-flowchart LR
-    subgraph "Nature"
-        A1["🌲 640 acres\nmixed conifer"]
-        A2["🔥 FIRMS\nfire detections"]
-        A3["🌡️ Ground temp\nsensors"]
-    end
+This maps to the [UN SEEA](https://seea.un.org/) framework: stock accounts (ecosystem extent) to flow accounts (treatment changes) to monetary accounts (premium savings).
 
-    subgraph "Measured Outcome"
-        B1["Sentinel-2 NDVI\n0.72 → 0.38"]
-        B2["Fuel load\n18.5 → 4.2 T/ac"]
-        B3["Risk score\n78 → 41"]
-    end
+## The Case Study
 
-    subgraph "Tradable Unit"
-        C1["118.5 WRC\nminted on HTS"]
-    end
-
-    subgraph "Financial Value"
-        D1["39% discount\n$111K/yr saved"]
-    end
-
-    A1 --> B1
-    A2 --> B1
-    A3 --> B2
-    B1 --> B3
-    B2 --> B3
-    B3 --> C1
-    C1 --> D1
-```
-
-This maps to the [UN SEEA](https://seea.un.org/) framework:
-- **Stock accounts**: ecosystem extent (640 acres) and condition (mixed conifer, WUI density)
-- **Flow accounts**: changes from treatment activities (fuel reduction, risk score change)
-- **Monetary accounts**: financial value realized (insurance premium savings)
-
-## Why This Matters
-
-In 2024, [Tahoe Donner HOA](https://www.tahoedonner.com/) became the first homeowner association to secure a parametric wildfire insurance policy with a **39% lower premium** and **89% lower deductible**. This happened because they could prove 30+ years of forest health management. But the proof was messy — spreadsheets, photos, inspector reports with no chain of custody.
-
-Hestia is what that proof system looks like when it runs on blockchain.
-
-**Parametric insurance** means automatic payouts triggered by measurable events — no claims process, no adjusters, no delays. If NASA FIRMS detects 5+ fire hotspots within the insured boundary, `$2.5M` is released immediately with no restrictions on use. The [InsurancePremiumCalculator](https://hashscan.io/testnet/contract/0x751f5fD84e0eefc800a94734A386eAcEb9B745a9) contract on Hedera testnet computes this trigger in real time.
-
-## Architecture
-
-Hestia is a monorepo with five packages:
-
-```
-├── apps/web/                       Next.js 16 — guided 8-step flow + API routes
-│   ├── src/app/hestia/              Landing page + flow entry
-│   ├── src/app/api/hestia/
-│   │   ├── guardian/                 Guardian REST proxy (submit, approve, query)
-│   │   ├── contracts/                eth_call to deployed Solidity contracts
-│   │   └── satellite/                NASA FIRMS + Sentinel-2 NDVI proxy
-│   └── src/components/hestia/flow/   8 guided step components
-│
-├── guardian/                        Hedera Guardian dMRV policy
-│   ├── schemas/                     6 Verifiable Credential schemas
-│   ├── policies/                    Exported policy JSON
-│   └── scripts/                     Python deployment + test scripts
-│
-├── packages/blockchain/             Hedera SDK — HCS, HTS, Mirror Node, KMS
-├── packages/contracts/              Solidity smart contracts (Hardhat 2.22)
-├── packages/satellite/              Python FastAPI — Sentinel-2 + FIRMS
-└── packages/simulator/              OCEMS data generator
-```
+[Tahoe Donner HOA](https://www.tahoedonner.com/) (Nevada County, California) has managed their forests since 1992. In 2024, they secured parametric wildfire insurance with a **39% lower premium** and **89% lower deductible**. Parametric means if a fire hits, **$2.5M is released automatically** with no claims process and no restrictions on use. Hestia is the infrastructure that makes this proof scalable.
 
 ## Hedera Services
 
-### Consensus Service (HCS)
+| Service | What we use it for | Testnet evidence |
+|---------|-------------------|-----------------|
+| **HCS** | Every Verifiable Credential anchored to consensus topic | [Topic 0.0.8317430](https://hashscan.io/testnet/topic/0.0.8317430) |
+| **HTS** | WRC fungible token (1 WRC = 1 treated acre, 2 decimals) | [Token 0.0.8312399](https://hashscan.io/testnet/token/0.0.8312399) |
+| **HTS** | CERT NFT for containment certificates | [Token 0.0.8312401](https://hashscan.io/testnet/token/0.0.8312401) |
+| **Smart Contracts** | RiskScoreOracle: 6-component risk model (pure, zero gas) | [0x7FdC9d74419b60e5126585B586FFfba57a8934A3](https://hashscan.io/testnet/contract/0x7FdC9d74419b60e5126585B586FFfba57a8934A3) |
+| **Smart Contracts** | InsurancePremiumCalculator: discount tiers + parametric trigger (pure, zero gas) | [0x751f5fD84e0eefc800a94734A386eAcEb9B745a9](https://hashscan.io/testnet/contract/0x751f5fD84e0eefc800a94734A386eAcEb9B745a9) |
+| **Guardian** | dMRV policy engine: 6 schemas, 4 roles, ~50 workflow blocks | [Self-hosted 3.5.0](http://165.22.212.120:3000) |
+| **Mirror Node** | HCS message polling, WRC supply verification, transaction resolution | `testnet.mirrornode.hedera.com` |
 
-Every Verifiable Credential produced by the Guardian is anchored to HCS topic [`0.0.8317430`](https://hashscan.io/testnet/topic/0.0.8317430). This provides an immutable, timestamped, ordered log of every action taken across the lifecycle — from site registration through token minting to insurance impact recording.
+Both smart contracts are called via real `eth_call` through the Validation Cloud JSON-RPC relay. Pure functions, zero gas, anyone can verify.
 
-Each demo run produces **8+ HCS messages**, each resolvable to a unique [`CONSENSUSSUBMITMESSAGE` transaction on HashScan](https://hashscan.io/testnet/topic/0.0.8317430).
+## Guardian Policy
 
-### Token Service (HTS)
+The Guardian policy manages the complete lifecycle of wildfire mitigation credentials.
 
-WRC is a fungible token on Hedera Token Service: [`0.0.8312399`](https://hashscan.io/testnet/token/0.0.8312399) with 2 decimal places. **1 WRC = 1 verified treated acre.** When a satellite analyst confirms treatment completion and the risk model validates the reduction, the Guardian policy automatically mints WRC tokens proportional to the verified acreage.
+**Schemas** (6): [`guardian/schemas/`](guardian/schemas/)
+- SiteRegistration (14 fields) / TreatmentPlan (10) / TreatmentReport (12) / RiskAssessment (18) / SatelliteValidation (8) / InsuranceImpact (12)
 
-A companion NFT token [`0.0.8312401`](https://hashscan.io/testnet/token/0.0.8312401) (CERT) is designed for containment certificates — digital proof that a prescribed burn was fully extinguished, inspired by [Cinderard](https://www.conservationxlabs.com/)'s ground temperature sensor concept from the Conservation X Labs Wildfire Challenge.
+**Roles** (4): Land Manager, Operator, Verifier, Satellite Analyst
 
-### Smart Contracts
-
-Two Solidity contracts deployed on Hedera testnet, called via `eth_call` (pure functions — zero gas cost):
-
-**[RiskScoreOracle](https://hashscan.io/testnet/contract/0x7FdC9d74419b60e5126585B586FFfba57a8934A3)** — `0x7FdC9d74419b60e5126585B586FFfba57a8934A3`
-
-Computes a composite fire risk score from 6 independently measurable components:
-
-| Component | Source | Weight |
-|-----------|--------|--------|
-| Fuel load | [LANDFIRE FBFM40](https://landfire.gov/) | 0–25 |
-| Slope | Terrain DEM | 0–15 |
-| WUI proximity | Structure density | 0–20 |
-| Firefighter access | Road network distance | 0–10 |
-| Fire history | [MTBS](https://www.mtbs.gov/) 20-year record | 0–10 |
-| Weather | [NOAA/RAWS](https://raws.dri.edu/) | 0–20 |
-
-```solidity
-function calculateRisk(RiskComponents calldata c)
-    external pure returns (uint8 total, string memory category)
-// Categories: Low (≤25) · Moderate (26-50) · High (51-75) · Extreme (76-100)
-```
-
-**[InsurancePremiumCalculator](https://hashscan.io/testnet/contract/0x751f5fD84e0eefc800a94734A386eAcEb9B745a9)** — `0x751f5fD84e0eefc800a94734A386eAcEb9B745a9`
-
-Converts WRC holdings into insurance premium discounts based on density (WRC per acre):
-
-| Tier | Threshold | Discount | Tahoe Donner benchmark |
-|------|-----------|----------|----------------------|
-| Bronze | 10 WRC/acre | 10% | — |
-| Silver | 25 WRC/acre | 25% | — |
-| Gold | 50 WRC/acre | **39%** | ✓ Real-world equivalent |
-| Platinum | 100 WRC/acre | 50% | — |
-
-```solidity
-function calculateSavings(uint256 annualPremiumCents, uint256 wrcBalance, uint32 acreage)
-    external pure returns (uint256 savingsCents, uint16 discountBps, string memory tierName)
-
-function checkParametricTrigger(uint8 firmsHotspots, uint8 threshold)
-    external pure returns (bool triggered)
-// 5+ FIRMS hotspots within boundary → automatic payout
-```
-
-### Guardian
-
-Self-hosted Guardian 3.5.0 managing the complete VC lifecycle through a policy with **6 schemas**, **4 roles**, and **~50 workflow blocks**.
+**Policy workflow:**
 
 ```mermaid
 graph TD
-    LM["👤 Land Manager"] -->|"SiteRegistration (14 fields)"| REG[Site Registered]
-    REG -->|pending| VER["👤 Verifier (CAL FIRE)"]
-    VER -->|"approve_site_btn"| APPROVED[Site Approved]
-
-    APPROVED --> OP["👤 Operator (RX Crew)"]
-    OP -->|"TreatmentPlan (10 fields)"| PLAN[Plan Submitted]
-    PLAN -->|"approve_plan_btn"| PLAN_OK[Plan Approved]
-
-    PLAN_OK --> OP2["👤 Operator"]
-    OP2 -->|"TreatmentReport (12 fields)"| REPORT[Report Filed]
-
-    REPORT --> SAT["👤 Satellite Analyst"]
-    SAT -->|"SatelliteValidation (8 fields)"| VALID[Satellite Proof]
-    SAT -->|"RiskAssessment (18 fields)"| RISK[Risk Scored]
-    RISK -->|"mintDocumentBlock"| MINT["🪙 WRC Minted"]
-    SAT -->|"InsuranceImpact (12 fields)"| INS[Impact Recorded]
+    LM["Land Manager"] -->|SiteRegistration VC| REG[Site Registered]
+    REG -->|pending| VER["Verifier (CAL FIRE)"]
+    VER -->|approve| APPROVED[Site Approved]
+    APPROVED --> OP["Operator (RX Crew)"]
+    OP -->|TreatmentPlan VC| PLAN[Plan Submitted]
+    PLAN -->|approve| PLAN_OK[Plan Approved]
+    PLAN_OK --> OP2[Operator]
+    OP2 -->|TreatmentReport VC| REPORT[Report Filed]
+    REPORT --> SAT["Satellite Analyst"]
+    SAT -->|SatelliteValidation VC| VALID[Satellite Proof]
+    SAT -->|RiskAssessment VC| RISK[Risk Scored]
+    RISK -->|mintDocumentBlock| MINT["WRC Minted"]
+    SAT -->|InsuranceImpact VC| INS[Impact Recorded]
 ```
 
-**Schemas:**
-- `SiteRegistration` — GPS coordinates, acreage, WUI structure count, vegetation type, current risk score, insurer, annual premium, Hedera account
-- `TreatmentPlan` — treatment type (prescribed burn / mechanical thinning / defensible space / fuel break), planned acres, dates, crew certification, burn permit, environmental clearance
-- `TreatmentReport` — actual treated acres, fuel load before/after, reduction percentage, containment verification, ground temperature readings (Cinderard), photo documentation hash, crew lead signature
-- `RiskAssessment` — pre/post 6-component risk scores, NDVI change, dNBR, FIRMS hotspot count, verified acres (= WRC mint amount), data sources, Sentinel-2 tile date, compliance flag, token action
-- `SatelliteValidation` — Sentinel-2 tile date, NDVI value, NBR value, FIRMS detections, landcover classification, correlation score
-- `InsuranceImpact` — pre/post risk, discount percentage, estimated annual savings, parametric trigger threshold, maximum payout, SEEA stock/flow/monetary classification
+**Guardian credentials:**
 
-### Mirror Node
+| Role | Username | Password | Purpose |
+|------|----------|----------|---------|
+| Standard Registry | `akash` | `Akash@17327` | Admin, policy management |
+| Land Manager | `fresh_land` | `Test@12345` | Registers treatment sites |
+| Operator | `fresh_oper` | `Test@12345` | Submits plans and reports |
+| Verifier | `fresh_veri` | `Test@12345` | Approves registrations |
+| Satellite Analyst | `fresh_sate` | `Test@12345` | Validates, assesses risk, mints WRC |
 
-Real-time queries to `testnet.mirrornode.hedera.com` for:
-- HCS message polling after each Guardian action (3s finality wait)
-- Transaction ID resolution (consensus timestamp → transaction ID → HashScan URL)
-- WRC token supply verification after minting
+## Smart Contracts
 
-### Satellite Data
+Source code: [`packages/contracts/contracts/`](packages/contracts/contracts/)
 
-| Source | Endpoint | Resolution | What it proves |
-|--------|----------|------------|----------------|
-| [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | VIIRS active fire detections | 375m, near-real-time | Fire proximity to site, parametric trigger input |
-| [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) | NDVI + NBR vegetation indices | 10m, 5-day revisit | Pre/post treatment vegetation change — independent verification |
-| [LANDFIRE](https://landfire.gov/) | FBFM40 fuel models | 30m | Fuel load baseline for risk component |
-| [NOAA RAWS](https://raws.dri.edu/) | Fire weather stations | Station-based | Wind, relative humidity, temperature for weather risk |
+**RiskScoreOracle** computes wildfire risk from six factors:
+
+| Component | Data source | Weight |
+|-----------|------------|--------|
+| Fuel load | [LANDFIRE](https://landfire.gov/) FBFM40 | 0-25 |
+| Slope | Terrain DEM | 0-15 |
+| WUI proximity | Structure density | 0-20 |
+| Firefighter access | Road network | 0-10 |
+| Fire history | [MTBS](https://www.mtbs.gov/) 20yr record | 0-10 |
+| Weather | [NOAA/RAWS](https://raws.dri.edu/) | 0-20 |
+
+Total 0-100. Categories: Low (0-25), Moderate (26-50), High (51-75), Extreme (76-100).
+
+**InsurancePremiumCalculator** converts WRC holdings to insurance discounts:
+
+| Tier | WRC/Acre | Discount |
+|------|----------|----------|
+| Bronze | 10+ | 10% |
+| Silver | 25+ | 25% |
+| Gold | 50+ | 39% (Tahoe Donner benchmark) |
+| Platinum | 100+ | 50% |
+
+Also has `checkParametricTrigger(firmsHotspots, threshold)`: 5+ FIRMS detections in boundary triggers automatic $2.5M payout.
+
+## Satellite Data
+
+| Source | Data | Resolution |
+|--------|------|-----------|
+| [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | Active fire detections | 375m, near-real-time |
+| [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) | NDVI / NBR vegetation indices | 10m, 5-day revisit |
+| [LANDFIRE](https://landfire.gov/) | Fuel models (FBFM40) | 30m |
+| [NOAA RAWS](https://raws.dri.edu/) | Fire weather | Station-based |
+
+Satellite API: [`packages/satellite/`](packages/satellite/)
 
 ## The Demo
 
-The app walks through the complete lifecycle using **Tahoe Donner HOA** (Nevada County, California) — a real community with a 30+ year forest health management program.
+The app at [hestia.bond/hestia/app](https://hestia.bond/hestia/app) walks through 8 steps with 4 characters. Each step creates a real Hedera transaction.
 
-Eight steps, four characters, one chain of proof:
+| Step | Who | What | Hedera action |
+|------|-----|------|--------------|
+| 1. Landscape | Raj (Satellite) | Survey Sierra Nevada, load FIRMS fires, fly to site | Data collection |
+| 2. Community | Maria (HOA) | Register 640-acre site with on-chain risk score | SiteRegistration VC |
+| 3. Inspection | Jennifer (CAL FIRE) | Cross-reference with satellite NDVI, approve | Site approval |
+| 4. Plan | Carlos (RX Crew) | Draw treatment polygon, weather check, submit | TreatmentPlan VC |
+| 5. Work | Carlos | 3-day burn, fuel slider, containment verification | TreatmentReport VC |
+| 6. Proof | Raj | Live Sentinel-2 data, on-chain risk computation, mint WRC | SatelliteValidation + RiskAssessment VCs + WRC mint |
+| 7. Value | Maria | On-chain insurance calc, parametric trigger, SEEA | InsuranceImpact VC |
+| 8. Chain | All | Full trust chain, 7 VCs, all HashScan links | Provenance display |
 
-| Step | Character | Role | What happens | Hedera evidence |
-|------|-----------|------|-------------|-----------------|
-| 1. Landscape | Raj Patel | Satellite Analyst | Surveys Sierra Nevada — FIRMS fire detection, 3D terrain, NDVI vegetation probes | Satellite data fetched live |
-| 2. Community | Maria Chen | Land Manager (HOA) | Registers 640-acre site with on-chain risk score (78/100 Extreme) | `SiteRegistration` VC → HCS |
-| 3. Inspection | Jennifer Torres | Verifier (CAL FIRE) | Reviews registration, cross-references with satellite NDVI, approves | `approve_site_btn` → HCS |
-| 4. Plan | Carlos Martinez | Operator (RX Crew) | Selects prescribed burn, draws treatment polygon on map, submits | `TreatmentPlan` VC → HCS |
-| 5. Work | Carlos Martinez | Operator | Reports 77% fuel reduction, 3-day burn timeline, Cinderard containment | `TreatmentReport` VC → HCS |
-| 6. Proof | Raj Patel | Satellite Analyst | Live Sentinel-2 validation, on-chain risk computation (78→41), mints WRC | `SatelliteValidation` + `RiskAssessment` VCs + WRC mint → HCS |
-| 7. Value | Maria Chen | Land Manager | On-chain insurance calculation, parametric trigger check, SEEA accounting | `InsuranceImpact` VC → HCS |
-| 8. Chain | All four | — | Full trust chain: 7 VCs, 8+ HCS messages, all HashScan-linked | Aggregated provenance |
+Every HashScan link is a real `CONSENSUSSUBMITMESSAGE` transaction on testnet.
 
-Every step creates a real Hedera testnet transaction. Every HashScan link resolves to a specific `CONSENSUSSUBMITMESSAGE`.
+## Repository Structure
+
+```
+apps/web/                           Next.js 16 frontend
+  src/app/hestia/                    Landing page + guided flow
+  src/app/api/hestia/                API routes (Guardian, contracts, satellite)
+  src/components/hestia/flow/        8 guided step components
+  src/lib/hestia-*.ts                Server helpers, constants
+  src/types/hestia.ts                Guardian schema TypeScript types
+
+guardian/                            Hedera Guardian policy
+  schemas/                           VC schema definitions
+  scripts/                           Policy deployment + testing (Python)
+  policies/                          Exported policy JSON
+
+packages/contracts/                  Solidity smart contracts
+  contracts/RiskScoreOracle.sol       6-component risk model
+  contracts/InsurancePremiumCalculator.sol  Discount tiers + parametric trigger
+
+packages/satellite/                  Python FastAPI satellite service
+  api.py                             FIRMS + Sentinel-2 endpoints
+
+packages/blockchain/                 Hedera SDK integration
+  src/                               HCS, HTS, Mirror Node, KMS, trust chain
+```
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | [Next.js 16](https://nextjs.org/), React 19, TypeScript, [Tailwind CSS 4](https://tailwindcss.com/), [Mapbox GL JS 3](https://www.mapbox.com/mapbox-gljs), [Recharts](https://recharts.org/), [Framer Motion](https://www.framer.com/motion/) |
-| Blockchain | [Hedera SDK 2.80](https://github.com/hashgraph/hedera-sdk-js), [ethers.js 6](https://docs.ethers.org/v6/), [Hardhat 2.22](https://hardhat.org/) |
-| Guardian | [Hedera Guardian 3.5.0](https://github.com/hashgraph/guardian) (self-hosted, DigitalOcean) |
-| Satellite | Python [FastAPI](https://fastapi.tiangolo.com/), [Google Earth Engine](https://earthengine.google.com/), [NASA FIRMS API](https://firms.modaps.eosdis.nasa.gov/api/) |
-| Infrastructure | [Turborepo](https://turbo.build/), [Validation Cloud](https://www.validationcloud.io/) JSON-RPC relay |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, Mapbox GL JS 3, Recharts, Framer Motion |
+| Blockchain | Hedera SDK 2.80, ethers.js 6, Hardhat 2.22 |
+| Guardian | v3.5.0, self-hosted on DigitalOcean |
+| Satellite | Python FastAPI, Google Earth Engine, NASA FIRMS API |
+| Infrastructure | Turborepo, Validation Cloud JSON-RPC |
 
 ## Getting Started
 
 ```bash
 git clone https://github.com/akash-mondal/hestia.git
-cd hestia
-npm install
-cp .env.example .env   # fill in your keys
+cd hestia && npm install
+cp .env.example .env    # fill in keys
 npm run dev             # http://localhost:3001/hestia
 ```
 
-Required environment variables (see `.env.example`):
-
-| Variable | Purpose |
-|----------|---------|
-| `HEDERA_ACCOUNT_ID` | Hedera testnet operator account |
-| `HEDERA_PRIVATE_KEY` | Operator private key (ED25519 or ECDSA) |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox GL JS public access token |
-| `HEDERA_JSON_RPC_URL` | JSON-RPC relay for smart contract `eth_call` |
-
 ## Acknowledgments
 
-This project draws on real-world wildfire mitigation research:
-- [Conservation X Labs Wildfire Challenge](https://www.conservationxlabs.com/) — 12 innovations including ground temperature containment verification
-- [Vibrant Planet](https://www.vibrantplanet.net/) — risk modeling platform and open data commons for fuel load and treatment planning
-- [Tahoe Donner Association](https://www.tahoedonner.com/) — forest health management program demonstrating the insurance value of proactive mitigation
+- [Conservation X Labs Wildfire Challenge](https://www.conservationxlabs.com/) - ground temperature containment verification (Cinderard)
+- [Vibrant Planet](https://www.vibrantplanet.net/) - risk modeling and open data commons
+- [Tahoe Donner Association](https://www.tahoedonner.com/) - proving that proactive forest management has financial value
 
 ## License
 
