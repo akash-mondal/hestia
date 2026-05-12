@@ -2,12 +2,6 @@
 
 **A fire ledger for wildfire resilience.**
 
-> **Live app:** [hestia.bond](https://hestia.bond) | **Guided demo:** [hestia.bond/hestia/app](https://hestia.bond/hestia/app)
->
-> **Guardian UI:** [165.22.212.120:3000](http://165.22.212.120:3000) — Login: `akash` / `Akash@17327`
->
-> **Source:** [github.com/akash-mondal/hestia](https://github.com/akash-mondal/hestia) — MIT License
-
 ---
 
 ## What is Hestia
